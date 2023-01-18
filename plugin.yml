@@ -1,0 +1,12 @@
+name: AutoPix
+version: 1.0.0
+main: io.github.warleysr.autopix.AutoPix
+author: warleysr
+api-version: 1.13
+commands:
+  autopix:
+    description: Valida uma transacao realizada por PIX
+    aliases: [ap, pix]
+  autopixmenu:
+    description: Abre o menu de itens disponivel para compra por PIX
+    aliases: [comprarpix]

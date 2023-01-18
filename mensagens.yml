@@ -1,0 +1,34 @@
+# Erros
+in-game: '&b[AutoPix] &cEste comando so pode ser usado dentro do jogo.'
+sem-permissao: '&b[AutoPix] &cVoce nao possui permissao!'
+erro-sql: '&b[AutoPix] &cErro ao iniciar MySQL. Verifique o erro: {mensagem}'
+erro: '&b[AutoPix] &cOcorreu um erro. Tente novamente mais tarde.'
+aguarde: '&b[AutoPix] &cAguarde mais &f{tempo} &csegundos para executar essa acao novamente.'
+
+
+# Titulo
+titulo-qr: '&a&lScaneie o código &b&lQR'
+subtitulo-qr: '&7&le pague pelo &c&lPIX&7&l. Use &f&l/pix info'
+
+# Ajuda
+ajuda-autopix:
+- '&7=========== &bAutoPix &7==========='
+- '&b/pix info &f- &7Ver instrucoes de validacao'
+- '&b/pix lista &f- &7Ver suas transacoes criadas'
+- '&b/pix validar <Codigo> &7- Validar uma transacao por PIX'
+- ' '
+
+# Lista
+ajuda-lista: '&b[AutoPix] &cUse &f/ap lista <Jogador> &c.'
+sem-ordens: '&b[AutoPix] &cNenhuma ordem PIX encontrada. Use &f/comprarpix&c.'
+cabecalho: '&7========== &bSuas ordens por PIX &7==========='
+corpo: '&7[&c{id}&7] {data} - &f{produto} (&cR${preco}&f) &7- {status}'
+
+# Validar
+ajuda-validar: '&b[AutoPix] &cUse &f/ap validar <ID do PIX>&c.'
+pix-invalido: '&b[AutoPix] &cO codigo informado nao e um PIX valido.'
+ja-validado: '&b[AutoPix] &cEste PIX ja foi validado antes.'
+erro-validar: '&b[AutoPix] &cOcorreu um erro ao validar. Tente novamente mais tarde.'
+pix-nao-validado: '&b[AutoPix] &cNao foi possivel validar o PIX. Verifique o codigo e tente novamente.'
+mao-vazia: '&b[AutoPix] &cVoce precisa estar com a mao vazia para receber o codigo QR.'
+validando: '&b[AutoPix] &aValidando seu PIX. Aguarde um pouco.'
