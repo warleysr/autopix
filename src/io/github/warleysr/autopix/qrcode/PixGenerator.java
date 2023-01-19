@@ -11,7 +11,7 @@ public class PixGenerator {
 	public static String generatePayload(String key, String name, String description, float price) {
 		String priceFmt = String.format("%.2f", price);
 		
-		String payload = PAYLOAD_1 + Integer.toString(key.length()) + PAYLOAD_2 
+		String payload = PAYLOAD_1 + Integer.toString(key.length()) + key + PAYLOAD_2 
 				+ String.format("%02d", priceFmt.length()) + priceFmt + PAYLOAD_3
 				+ String.format("%02d", name.length()) + name + PAYLOAD_4 
 				+ String.format("%02d", description.length()) + description + PAYLOAD_5;
