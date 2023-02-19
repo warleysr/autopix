@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import io.github.warleysr.autopix.AutoPix;
+import io.github.warleysr.autopix.MSG;
 import io.github.warleysr.autopix.OrderProduct;
 
 public class InventoryManager {
@@ -58,15 +59,15 @@ public class InventoryManager {
 		
 		BookMeta meta = (BookMeta) INFO.getItemMeta();
 		
-		for (String page : ap.getConfig().getConfigurationSection("info").getKeys(false)) {
+		for (String page : ap.getConfig().getConfigurationSection("info.paginas").getKeys(false)) {
 			String content = "";
-			for (String line : ap.getConfig().getStringList("info." + page))
+			for (String line : ap.getConfig().getStringList("info.paginas." + page))
 				content += line.replace('&', '\u00a7') + "\n";
 			
 			meta.addPage(content);
 		}
-		meta.setTitle("Info PIX");
-		meta.setAuthor("Server");
+		meta.setTitle(ap.getConfig().getString("info.titulo").replace('&', '\u00a7'));
+		meta.setAuthor(ap.getConfig().getString("info.autor").replace('&', '\u00a7'));
 		
 		INFO.setItemMeta(meta);
 	}
@@ -79,8 +80,15 @@ public class InventoryManager {
 		p.openInventory(CONFIRM);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public static void openInfo(Player p) {
-		p.openBook(INFO);
+		if (AutoPix.getRunningVersion() >= 1009)
+			p.openBook(INFO);
+		else if (p.getItemInHand().getType() == Material.AIR)
+			p.getInventory().setItemInHand(INFO);
+		else
+			MSG.sendMessage(p, "mao-vazia");
+		
 	}
 	
 	public static String getMenuTitle() {
@@ -103,8 +111,10 @@ public class InventoryManager {
 		return PRODUCTS.get(slot);
 	}
 	
+	@SuppressWarnings("deprecation")
 	private static ItemStack loadItem(FileConfiguration fc, String path, float price) {
-		ItemStack item = new ItemStack(Material.getMaterial(fc.getString(path + ".material").toUpperCase()));
+		Material material = Material.getMaterial(fc.getString(path + ".material").toUpperCase());
+		ItemStack item = new ItemStack(material != null ? material : Material.STONE);
 		
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(fc.getString(path + ".nome").replace('&', '\u00a7')
@@ -117,6 +127,8 @@ public class InventoryManager {
 			
 			meta.setLore(lore);
 		}
+		
+		item.setDurability((short) fc.getInt(path + ".data", 0));
 		
 		meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 		item.setItemMeta(meta);

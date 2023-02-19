@@ -18,6 +18,8 @@ import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
+import io.github.warleysr.autopix.AutoPix;
+
 public class ImageCreator {
 
     public static BufferedImage generateQR(String data) 
@@ -31,12 +33,19 @@ public class ImageCreator {
     	return image;
     }
 
-    public static void generateMap(final BufferedImage image, Player p) {
-        ItemStack itemStack = new ItemStack(Material.FILLED_MAP);
+    @SuppressWarnings("deprecation")
+	public static void generateMap(final BufferedImage image, Player p) {
+    	float version = AutoPix.getRunningVersion();
+    	
+    	String mapMaterial = version >= 1013 ? "FILLED_MAP" : "MAP";
+    	
+        ItemStack itemStack = new ItemStack(Material.getMaterial(mapMaterial));
         MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
         MapView mapView = Bukkit.createMap(p.getWorld());
         mapView.setScale(MapView.Scale.CLOSEST);
-        mapView.setUnlimitedTracking(true);
+        if (version >= 1013)
+        	mapView.setUnlimitedTracking(true);
+        
         mapView.getRenderers().clear();
 
         mapView.addRenderer(new MapRenderer() {
@@ -45,10 +54,35 @@ public class ImageCreator {
                 mapCanvas.drawImage(0, 0, image);
             }
         });
-
-        mapMeta.setMapView(mapView);
+        
+        if (version >= 1013)
+        	mapMeta.setMapView(mapView);
+        else
+        	itemStack.setDurability(getMapID(mapView));
+        
         itemStack.setItemMeta(mapMeta);
 
-        p.getInventory().setItemInMainHand(itemStack);
+        p.getInventory().setItemInHand(itemStack);
+    }
+    
+    public static Class<?> getMapNMS(String name) {
+        try {
+            return Class.forName("org.bukkit.map." + name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static short getMapID(MapView view) {
+      try {
+            return (short) view.getId();
+        } catch (NoSuchMethodError e) {
+            try {
+                Class<?> MapView = getMapNMS("MapView");
+                Object mapID = MapView.getMethod("getId").invoke(view);
+                return (short)mapID;
+            } catch (Exception ex) { return 1; }
+        }
     }
 }

@@ -24,7 +24,7 @@ public class OrderManager {
 			   pass = cfg.getString("mysql.pass").trim(), db = cfg.getString("mysql.db").trim();
 		int port = cfg.getInt("mysql.port");
 		
-		String url = "jdbc:mysql://" + host + ":" + port + "/" + db;
+		String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?characterEncoding=utf8";
 		conn = DriverManager.getConnection(url, user, pass);
 		
 		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_orders "

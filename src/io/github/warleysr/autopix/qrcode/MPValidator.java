@@ -36,6 +36,9 @@ public class MPValidator {
 		try {
 			HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
 			if (response.statusCode() != 200) {
+				Bukkit.getConsoleSender().sendMessage("\u00a7b[AutoPix] \u00a7cErro ao validar PIX:\n" 
+							+ response.statusCode() + " - " + response.body() 
+							+ "\nVerifique se configurou corretamente o token do MP.");
 				MSG.sendMessage(p, "erro-validar");
 				return;
 			}

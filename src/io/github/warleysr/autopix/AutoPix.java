@@ -58,5 +58,13 @@ public class AutoPix extends JavaPlugin {
 	public static String getPixName() {
 		return PIX_NAME;
 	}
+	
+	public static int getRunningVersion() {
+		String[] version = Bukkit.getBukkitVersion().split("-")[0].split("\\.");
+		int major = Integer.valueOf(version[0]);
+		int minor = Integer.valueOf(version[1]);
+		
+		return major * 1000 + minor;
+	}
 
 }

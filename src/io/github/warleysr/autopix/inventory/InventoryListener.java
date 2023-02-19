@@ -4,6 +4,7 @@ package io.github.warleysr.autopix.inventory;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -24,6 +25,7 @@ public class InventoryListener implements Listener {
 	
 	private static final HashMap<String, Integer> BUYING = new HashMap<>();
 	
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onClick(InventoryClickEvent e) {
 		if (e.getView().getTitle().equals(InventoryManager.getMenuTitle())) {
@@ -54,7 +56,7 @@ public class InventoryListener implements Listener {
 		
 		p.closeInventory();
 		
-		if (p.getInventory().getItemInMainHand().getType() != Material.AIR) {
+		if (p.getInventory().getItemInHand().getType() != Material.AIR) {
 			MSG.sendMessage(p, "mao-vazia");
 			return;
 		}
@@ -88,7 +90,14 @@ public class InventoryListener implements Listener {
 						public void run() {
 							ImageCreator.generateMap(qr, p);
 							
-							p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
+							Bukkit.broadcastMessage("Version: " + AutoPix.getRunningVersion());
+							
+							if (AutoPix.getRunningVersion() >= 1009)
+								p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
+							else {
+								MSG.sendMessage(p, "titulo-qr");
+								MSG.sendMessage(p, "subtitulo-qr");
+							}
 						}
 					}.runTask(AutoPix.getInstance());
 					
