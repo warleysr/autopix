@@ -8,6 +8,12 @@ pix:
   # Nome do beneficiario com ate 25 caracteres
   nome: 'Fulano de Tal'
 
+# Modo de ativacao automatico
+automatico:
+  ativado: true
+  intervalo: 10
+  notificacoes: 'http://meusite.com/autopix/notification.php'
+
 # Servidor MySQL para salvamento dos dados
 mysql:
   db: tests
@@ -58,6 +64,11 @@ menu:
         descricao:
         - '&7Vip por &c30 &7dias'
         - '&7Clique para comprar por &aPIX'
+
+# Som ao pagamento ser validado
+som:
+  ativar: true
+  efeito: BLOCK_NOTE_BLOCK_BASS
 
 # Livro de ajuda com instrucoes
 info:

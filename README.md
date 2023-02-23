@@ -1,6 +1,6 @@
 # AutoPix
 
- O AutoPix é um plugin que integra <b>código QR</b> PIX dentro do Minecraft e permite que os jogadores validem as transações e recebam o produto comprado automaticamente. Utiliza o MercadoPago como gateway mas não gera taxas.
+ O AutoPix é um plugin Spigot que integra <b>código QR</b> PIX dentro do Minecraft e permite que os jogadores comprem itens e recebam automaticamente em questão de segundos.
 
 ## Como funciona?
 
@@ -12,11 +12,13 @@ e quando ele confirmar a compra receberá nas mãos um QR code para pagar por PI
 
 <img src="https://i.imgur.com/UqkV1n4.png" align="middle" width="250px">
 
-após pagar pelo banco de preferência ele obtém o código do PIX e faz `/pix validar <Codigo da Transacao>` e os comandos configurados serão executados. Você pode configurar comandos de dar VIP ou dinheiro, por exemplo.
+## Modos de validação
+**Modo manual:** Após pagar pelo banco de preferência ele obtém o código do PIX e faz `/pix validar <Codigo da Transacao>` e os comandos configurados serão executados. 
+
+**Modo automático:** No modo automático o jogador só precisa aguardar a confirmação. Para isso será necessário configurar uma URL de notificação para o MercadoPago.
+
+Você pode configurar comandos de dar VIP, dinheiro, itens etc.
  
-## Vantagens
-- Por se tratar de uma transação direta por PIX o MercadoPago não cobrará nenhuma taxa, ficando todo o valor para você. 🤑
-- Por ser automático a validação você não precisa ter um site nem gerar keys de VIP manualmente.
 
 ## Comandos
 Além dos comandos já mencionados o plugin conta com o comando `/pix info` que abre um livro com instruções de como validar para os seus jogadores não terem dúvidas:
@@ -28,12 +30,14 @@ Existe também o comando `/pix lista` que mostra a lista de ordens criadas pelo 
 <img src="https://i.imgur.com/sEd6vXT.png" align="middle" width="400px">
 
 ## Outras features
-- Salvamento dos dados no MySQL
+- Salvamento dos dados com MySQL
 - Todas as mensagens editáveis
 - Limite de tempo entre as ações para evitar sobrecarga no server
 
-## Vídeo demonstrativo:
+## Vídeos demonstrativos:
 https://youtu.be/vVs14RqBq3Q
+
+https://youtu.be/38rZIy0lXbM
 
 ## Download e instalação
 1. Baixe a última versão em <a href="https://github.com/warleysr/autopix/releases">releases</a> e coloque na pasta `plugins` do seu servidor. 
@@ -42,5 +46,15 @@ https://youtu.be/vVs14RqBq3Q
 4. Configure a chave PIX que receberá os pagamentos (ela deve estar vinculada a sua conta do MP)
 5. Configure também a conexão ao banco de dados MySQL 
 6. Reinicie o servidor
+
+## Configuração do modo automático
+Se você deseja utilizar o modo 100% automático, siga estes passos:
+1. Baixe o arquivo <a href="https://github.com/warleysr/autopix/blob/master/web/notification.php">web/notification.php</a> nesse repositório
+2. Edite as primeiras linhas para configurar o banco de dados (o mesmo configurado no plugin) e o token de acesso do MP
+3. Coloque este arquivo em sua hospedagem em algum diretório, por ex: `http://seusite.com/web/notification.php`
+4. Configure essa URL na `config.yml` do plugin
+5. Reinicie o servidor
+
+
 
 Thanks to @rapust for creating <a href="https://github.com/rapust/QRCodeMap">QRCodeMap</a>.

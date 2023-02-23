@@ -9,10 +9,9 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
@@ -44,20 +43,20 @@ public class MPValidator {
 			}
 			List<Order> orders = OrderManager.getOrders(p.getName());
 			
-			JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
+			JSONObject json = (JSONObject) new JSONParser().parse(response.body());
 			
 			// Iterate over transaction list to find which one has the provided ID
-			for (JsonElement resElem : json.get("results").getAsJsonArray()) {
-				JsonObject details = resElem.getAsJsonObject().get("transaction_details").getAsJsonObject();
+			for (Object resElem : (JSONArray) json.get("results")) {
+				JSONObject details = (JSONObject)((JSONObject) resElem).get("transaction_details");
 				
 				if (details == null) continue;
 				if (details.get("transaction_id") == null) continue;
 				
-				String transaction = details.get("transaction_id").getAsString();
+				String transaction = (String) details.get("transaction_id");
 				if (!(transaction.startsWith("PIX"))) continue;
 				if (!(transaction.substring(3).equals(txid))) continue;
 				
-				float value = details.get("total_paid_amount").getAsFloat();
+				double value = (double) details.get("total_paid_amount");
 				
 				
 				// Iterate over player orders to get the corresponding 
@@ -66,7 +65,6 @@ public class MPValidator {
 					if (ord.getPrice() == value) {
 						if (OrderManager.setTransaction(ord, txid)) {
 						
-							
 								new BukkitRunnable() {
 									
 									@Override

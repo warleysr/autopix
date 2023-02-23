@@ -1,5 +1,6 @@
 package io.github.warleysr.autopix;
 
+import java.awt.image.BufferedImage;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -10,8 +11,16 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
+import io.github.warleysr.autopix.qrcode.ImageCreator;
 
 public class OrderManager {
 	
@@ -31,6 +40,9 @@ public class OrderManager {
 				+ "(id INT PRIMARY KEY AUTO_INCREMENT, player VARCHAR(16) NOT NULL,"
 				+ "product VARCHAR(16) NOT NULL, price DECIMAL(10, 2) NOT NULL, "
 				+ "created TIMESTAMP NOT NULL, pix VARCHAR(32) UNIQUE NULL);").executeUpdate();
+		
+		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_pendings " 
+				+ "(id VARCHAR(32) PRIMARY KEY, player VARCHAR(16) NOT NULL);").executeUpdate();
 	}
 	
 	public static Order createOrder(Player p, String product, float price) {
@@ -109,6 +121,74 @@ public class OrderManager {
 			e.printStackTrace();
 			return false;
 		}
+	}
+	
+	protected static void validatePendings(AutoPix ap) {
+		try {
+			PreparedStatement st = conn.prepareStatement("SELECT * FROM autopix_pendings;");
+			ResultSet rs = st.executeQuery();
+			
+			while (rs.next()) {
+				String player = rs.getString("player");
+				if (Bukkit.getPlayerExact(player) == null) continue;
+				
+				String id = rs.getString("id");
+				
+				Object[] data = MercadoPagoAPI.getPayment(ap, id);
+				if (data == null) continue;
+				
+				String pixId = (String) data[0];
+				double paid = (double) data[1];
+				
+				for (Order order : getOrders(player)) {
+					if (order.isValidated()) continue;
+					if (Math.abs(order.getPrice() - paid) > 0.001) continue;
+					
+					if (!(OrderManager.setTransaction(order, pixId))) continue;
+					
+					deletePending(id);
+					
+					new BukkitRunnable() {
+						@SuppressWarnings("deprecation")
+						@Override
+						public void run() {
+							Player p = Bukkit.getPlayerExact(player);
+							
+							try {
+								String mapMaterial = AutoPix.getRunningVersion() >= 1013 ? "FILLED_MAP" : "MAP";
+								if (p.getItemInHand().getType().name() == mapMaterial) {
+									BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
+									ImageCreator.generateMap(gif, p);
+								}
+							} catch (Exception e) {}
+							
+							if (ap.getConfig().getBoolean("som.ativar")) {
+								try {
+									Sound sound = Sound.valueOf(
+											ap.getConfig().getString("som.efeito").toUpperCase());
+									p.playSound(p, sound, 1, 1);
+								} catch (Exception e) {}
+							}
+							
+							for (String cmd : ap.getConfig().getStringList("menu.produtos." 
+									+ order.getProduct() + ".comandos")) {
+								Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+										cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
+							}
+						}
+					}.runTask(ap);
+					break;
+				}
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private static void deletePending(String id) throws SQLException {
+		PreparedStatement st = conn.prepareStatement("DELETE FROM autopix_pendings WHERE id = ?;");
+		st.setString(1, id);
+		st.executeUpdate();
 	}
 
 }

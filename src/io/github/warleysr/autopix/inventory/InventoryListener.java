@@ -4,7 +4,6 @@ package io.github.warleysr.autopix.inventory;
 import java.awt.image.BufferedImage;
 import java.util.HashMap;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +17,7 @@ import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
 import io.github.warleysr.autopix.OrderProduct;
 import io.github.warleysr.autopix.TimeManager;
+import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
 import io.github.warleysr.autopix.qrcode.ImageCreator;
 import io.github.warleysr.autopix.qrcode.PixGenerator;
 
@@ -79,18 +79,23 @@ public class InventoryListener implements Listener {
 				}
 				
 				try {
-					final String payload = PixGenerator
-							.generatePayload(AutoPix.getPixKey(), AutoPix.getPixName(), 
-									op.getProduct(), op.getPrice());
+					String payload = null;
+					// If automatic mode is not enabled, create a static QR code
+					if (!(AutoPix.getInstance().getConfig().getBoolean("automatico.ativado")))
+						payload = PixGenerator
+								.generatePayload(AutoPix.getPixKey(), AutoPix.getPixName(), 
+										op.getProduct(), op.getPrice());
+					else
+						payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op);
+					
 					
 					final BufferedImage qr = ImageCreator.generateQR(payload);
 					
 					new BukkitRunnable() {
 						@Override
 						public void run() {
-							ImageCreator.generateMap(qr, p);
 							
-							Bukkit.broadcastMessage("Version: " + AutoPix.getRunningVersion());
+							ImageCreator.generateMap(qr, p);
 							
 							if (AutoPix.getRunningVersion() >= 1009)
 								p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);

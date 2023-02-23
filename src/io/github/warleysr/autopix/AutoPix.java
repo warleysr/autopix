@@ -4,6 +4,7 @@ import java.sql.SQLException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import io.github.warleysr.autopix.commands.APMenuCommand;
 import io.github.warleysr.autopix.commands.AutoPixCommand;
@@ -45,6 +46,18 @@ public class AutoPix extends JavaPlugin {
 		getCommand("autopixmenu").setExecutor(new APMenuCommand());
 		
 		Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
+		
+		// Start async task to validate transactions automatically
+		if (getConfig().getBoolean("automatico.ativado")) {
+			int interval = getConfig().getInt("automatico.intervalo");
+			
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					OrderManager.validatePendings(AutoPix.this);
+				}
+			}.runTaskTimerAsynchronously(this, interval * 20L, interval * 20L);
+		}
 	}
 	
 	public static AutoPix getInstance() {
