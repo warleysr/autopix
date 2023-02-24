@@ -23,81 +23,66 @@ public class AutoPixCommand implements CommandExecutor {
 
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String command, String[] args) {
-		if (cmd.getName().equalsIgnoreCase("autopix")) {
-			if (!(sender.hasPermission("autopix.use"))) {
-				MSG.sendMessage(sender, "sem-permissao");
-				return false;
-			}
-			if (args.length == 0) {
-				MSG.sendMessage(sender, "ajuda-autopix");
-				return false;
-			}
+		if (args.length >= 1) {
+			/* Checando os subcommands */
 			if (args[0].equalsIgnoreCase("info")) {
 				if (!(sender instanceof Player)) {
 					MSG.sendMessage(sender, "in-game");
 					return false;
 				}
 				InventoryManager.openInfo((Player) sender);
-			}
-			else if (args[0].equalsIgnoreCase("lista")) {
+				return true;
+			} else if (args[0].equalsIgnoreCase("lista")) {
 				if (args.length == 1) {
 					if (!(sender instanceof Player)) {
 						MSG.sendMessage(sender, "ajuda-lista");
 						return false;
 					}
-					if (!(TimeManager.canExecute
-							(AutoPix.getInstance(), (Player) sender, "list"))) 
+					if (!TimeManager.canExecute(AutoPix.getInstance(), (Player) sender, "list")) {
 						return false;
-					
+					}
 					sendOrderList(sender, sender.getName());
-					
-					return false;
+					return true;
 				}
-				if (!(sender.hasPermission("autopix.admin"))) {
+				if (!sender.hasPermission("autopix.admin")) {
 					MSG.sendMessage(sender, "sem-permissao");
 					return false;
 				}
-				
 				sendOrderList(sender, args[1]);
-				
-			}
-			else if(args[0].equalsIgnoreCase("validar")) {
+				return true;
+			} else if (args[0].equalsIgnoreCase("validar")) {
 				if (!(sender instanceof Player)) {
 					MSG.sendMessage(sender, "in-game");
 					return false;
 				}
-				Player p = (Player) sender;
+				Player player = (Player) sender;
 				if (args.length == 1) {
-					MSG.sendMessage(p, "ajuda-validar");
+					MSG.sendMessage(player, "ajuda-validar");
 					return false;
 				}
 				String pixId = args[1];
-				if (pixId.length() != 32) {
-					MSG.sendMessage(p, "pix-invalido");
+				if (pixId.length() != 32 || pixId.charAt(0) != 'E') {
+					MSG.sendMessage(player, "pix-invalido");
 					return false;
 				}
-				if (pixId.charAt(0) != 'E') {
-					MSG.sendMessage(p, "pix-invalido");
+				if (!TimeManager.canExecute(AutoPix.getInstance(), player, "validate")) {
 					return false;
 				}
-				if (!(TimeManager.canExecute
-						(AutoPix.getInstance(), (Player) sender, "validate"))) 
-					return false;
 				if (OrderManager.isTransactionValidated(pixId)) {
-					MSG.sendMessage(p, "ja-validado");
+					MSG.sendMessage(player, "ja-validado");
 					return false;
 				}
-				MSG.sendMessage(p, "validando");
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						MPValidator.validateTransaction(AutoPix.getInstance(), pixId, p);
-						
-					}
+				MSG.sendMessage(player, "validando");
+				new Thread(() -> {
+					MPValidator.validateTransaction(AutoPix.getInstance(), pixId, player);
 				}).start();
+				return true;
 			}
 		}
-		return true;
+
+		// Caso nenhum subcomando seja identificado, envia a mensagem de ajuda.
+		MSG.sendMessage(sender, "ajuda-autopix");
+		return false;
 	}
 	
 	private void sendOrderList(final CommandSender sender, final String player) {
