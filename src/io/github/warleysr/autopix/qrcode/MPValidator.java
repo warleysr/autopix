@@ -17,6 +17,7 @@ import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
 import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
+import io.github.warleysr.autopix.inventory.InventoryManager;
 
 
 public class MPValidator {
@@ -69,6 +70,8 @@ public class MPValidator {
 									
 									@Override
 									public void run() {
+										InventoryManager.removeUnpaidMaps(p);
+										
 										for (String cmd : ap.getConfig().getStringList("menu.produtos." 
 												+ ord.getProduct() + ".comandos")) {
 											Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 

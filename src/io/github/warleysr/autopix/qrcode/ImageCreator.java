@@ -19,6 +19,8 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
 import io.github.warleysr.autopix.AutoPix;
+import io.github.warleysr.autopix.OrderProduct;
+import io.github.warleysr.autopix.inventory.InventoryManager;
 
 public class ImageCreator {
 
@@ -34,7 +36,7 @@ public class ImageCreator {
     }
 
     @SuppressWarnings("deprecation")
-	public static void generateMap(final BufferedImage image, Player p) {
+	public static void generateMap(final BufferedImage image, Player p, OrderProduct op) {	
     	float version = AutoPix.getRunningVersion();
     	
     	String mapMaterial = version >= 1013 ? "FILLED_MAP" : "MAP";
@@ -59,6 +61,8 @@ public class ImageCreator {
         	mapMeta.setMapView(mapView);
         else
         	itemStack.setDurability(getMapID(mapView));
+        
+        InventoryManager.updateMapMeta(AutoPix.getInstance(), mapMeta, p, op);
         
         itemStack.setItemMeta(mapMeta);
 

@@ -1,6 +1,8 @@
 package io.github.warleysr.autopix.inventory;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
@@ -13,6 +15,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.MapMeta;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
@@ -24,10 +27,12 @@ public class InventoryManager {
 	private static Inventory CONFIRM;
 	private static String menuTitle;
 	private static String confirmTitle;
+	private static String mapTitle;
 	private static int cancelSlot, confirmSlot;
 	private static ItemStack INFO;
 	
 	private static final HashMap<Integer, OrderProduct> PRODUCTS = new HashMap<>();
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy '\u00e0s' HH:mm");
 	
 	public static void createMenuInventory(AutoPix ap) {
 		menuTitle = ap.getConfig().getString("menu.titulo").replace('&', '\u00a7');
@@ -45,6 +50,8 @@ public class InventoryManager {
 		
 		confirmTitle = ap.getConfig().getString("menu.confirmar.titulo").replace('&', '\u00a7');
 		CONFIRM = Bukkit.createInventory(null, ap.getConfig().getInt("menu.confirmar.tamanho"), confirmTitle);
+		
+		mapTitle = ap.getConfig().getString("mapa.nome").replace('&', '\u00a7');
 		
 		cancelSlot = ap.getConfig().getInt("menu.confirmar.cancelar.slot") - 1;
 		confirmSlot = ap.getConfig().getInt("menu.confirmar.confirmar.slot") - 1;
@@ -95,6 +102,10 @@ public class InventoryManager {
 		return menuTitle;
 	}
 	
+	public static String getMapTitle() {
+		return mapTitle;
+	}
+	
 	public static String getConfirmTitle() {
 		return confirmTitle;
 	}
@@ -134,6 +145,31 @@ public class InventoryManager {
 		item.setItemMeta(meta);
 		
 		return item;
+	}
+	
+	public static void removeUnpaidMaps(Player p) {
+		for (ItemStack item : p.getInventory().getContents()) {
+			if (item == null) continue;
+			if (!(item.hasItemMeta())) continue;
+			if (!(item.getItemMeta().hasDisplayName())) continue;
+			if (item.getItemMeta().getDisplayName().equals(mapTitle))
+				p.getInventory().remove(item);
+		}
+	}
+	
+	public static void updateMapMeta(AutoPix ap, MapMeta meta, Player p, OrderProduct op) {
+		meta.setDisplayName(mapTitle);
+		
+		List<String> lore = new ArrayList<>();
+		if (op != null)
+			for (String line : ap.getConfig().getStringList("mapa.descricao"))
+				lore.add(line
+						.replace('&', '\u00a7')
+						.replace("{jogador}", p.getName())
+						.replace("{produto}", op.getProduct())
+						.replace("{data}", DATE_FORMAT.format(new Date())));
+		
+		meta.setLore(lore);
 	}
 
 }

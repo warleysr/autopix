@@ -56,6 +56,9 @@ public class AutoPixCommand implements CommandExecutor {
 					return false;
 				}
 				Player player = (Player) sender;
+				if (AutoPix.getInstance().getConfig().getBoolean("automatico.ativado")) {
+					return false;
+				}
 				if (args.length == 1) {
 					MSG.sendMessage(player, "ajuda-validar");
 					return false;

@@ -9,6 +9,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import io.github.warleysr.autopix.AutoPix;
@@ -95,7 +98,7 @@ public class InventoryListener implements Listener {
 						@Override
 						public void run() {
 							
-							ImageCreator.generateMap(qr, p);
+							ImageCreator.generateMap(qr, p, op);
 							
 							if (AutoPix.getRunningVersion() >= 1009)
 								p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
@@ -113,5 +116,20 @@ public class InventoryListener implements Listener {
 			}
 		}).start();
 	}
-}
+	}
+	
+	@EventHandler
+	public void onDrop(PlayerDropItemEvent e) {
+		ItemStack item = e.getItemDrop().getItemStack();
+		if (item.hasItemMeta() && item.getItemMeta().hasDisplayName() 
+				&& item.getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle()))
+			e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onInteract(PlayerInteractEvent e) {
+		if (e.hasItem() && e.getItem().hasItemMeta() && e.getItem().getItemMeta().hasDisplayName() 
+				&& e.getItem().getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle()))
+			e.setCancelled(true);
+	}
 }

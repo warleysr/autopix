@@ -68,12 +68,17 @@ public class OrderManager {
 	}
 	
 	public static List<Order> getOrders(String player) {
+		return getOrders(player, 10);
+	}
+	
+	public static List<Order> getOrders(String player, int limit) {
 		List<Order> orders = new ArrayList<>();
 		
 		try {
 			PreparedStatement ps = conn.prepareStatement("SELECT * FROM autopix_orders WHERE player = ? " + 
-														 "ORDER BY created DESC LIMIT 10;");
+														 "ORDER BY created DESC LIMIT ?;");
 			ps.setString(1, player);
+			ps.setInt(2, limit);
 			
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
@@ -97,6 +102,11 @@ public class OrderManager {
 		}
 		
 		return orders;
+	}
+	
+	public static Order getLastOrder(String player) {
+		List<Order> orders = getOrders(player, 1);
+		return orders.isEmpty() ? null : orders.get(0);
 	}
 	
 	public static boolean isTransactionValidated(String transactionId) {
@@ -158,7 +168,7 @@ public class OrderManager {
 								String mapMaterial = AutoPix.getRunningVersion() >= 1013 ? "FILLED_MAP" : "MAP";
 								if (p.getItemInHand().getType().name() == mapMaterial) {
 									BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
-									ImageCreator.generateMap(gif, p);
+									ImageCreator.generateMap(gif, p, null);
 								}
 							} catch (Exception e) {}
 							

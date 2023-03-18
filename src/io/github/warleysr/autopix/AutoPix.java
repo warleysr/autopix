@@ -1,8 +1,10 @@
 package io.github.warleysr.autopix;
 
 import java.sql.SQLException;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -58,6 +60,24 @@ public class AutoPix extends JavaPlugin {
 				}
 			}.runTaskTimerAsynchronously(this, interval * 20L, interval * 20L);
 		}
+		
+		// Start task to remove unpaid maps
+		int remInterval = getConfig().getInt("mapa.intervalo");
+		new BukkitRunnable() {		
+			@Override
+			public void run() {
+				for (Player p : Bukkit.getOnlinePlayers()) {
+					Order order = OrderManager.getLastOrder(p.getName());
+					if (order == null) continue;
+					
+					long diff = System.currentTimeMillis() - order.getCreated().getTime();
+					long minutes = TimeUnit.MILLISECONDS.toMinutes(diff);
+					
+					if (minutes >= getInstance().getConfig().getInt("mapa.tempo-pagar"))
+						InventoryManager.removeUnpaidMaps(p);
+				}
+			}
+		}.runTaskTimerAsynchronously(this, remInterval * 20L, remInterval * 20L);
 	}
 	
 	public static AutoPix getInstance() {
