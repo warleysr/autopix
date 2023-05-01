@@ -57,35 +57,33 @@ public class MPValidator {
 				if (!(transaction.startsWith("PIX"))) continue;
 				if (!(transaction.substring(3).equals(txid))) continue;
 				
-				double value = (double) details.get("total_paid_amount");
-				
+				double paid = (double) details.get("total_paid_amount");
 				
 				// Iterate over player orders to get the corresponding 
-				for (Order ord : orders) {
-					if (ord.isValidated()) continue;
-					if (ord.getPrice() == value) {
-						if (OrderManager.setTransaction(ord, txid)) {
-						
-								new BukkitRunnable() {
+				for (Order order : orders) {
+					if (order.isValidated()) continue;
+					if (Math.abs(order.getPrice() - paid) > 0.001) continue;
+					if (OrderManager.setTransaction(order, txid)) {
+					
+							new BukkitRunnable() {
+								
+								@Override
+								public void run() {
+									InventoryManager.removeUnpaidMaps(p);
 									
-									@Override
-									public void run() {
-										InventoryManager.removeUnpaidMaps(p);
-										
-										for (String cmd : ap.getConfig().getStringList("menu.produtos." 
-												+ ord.getProduct() + ".comandos")) {
-											Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
-													cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
-										}
+									for (String cmd : ap.getConfig().getStringList("menu.produtos." 
+											+ order.getProduct() + ".comandos")) {
+										Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+												cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
 									}
-								}.runTask(ap);
-						}
-						else
-							MSG.sendMessage(p, "erro-validar");
-						return;
+								}
+							}.runTask(ap);
 					}
-				}	
-			}
+					else
+						MSG.sendMessage(p, "erro-validar");
+					return;
+				}
+			}	
 			
 			MSG.sendMessage(p, "pix-nao-validado");
 			
