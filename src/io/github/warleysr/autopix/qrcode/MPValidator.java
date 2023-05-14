@@ -57,7 +57,11 @@ public class MPValidator {
 				if (!(transaction.startsWith("PIX"))) continue;
 				if (!(transaction.substring(3).equals(txid))) continue;
 				
-				double paid = (double) details.get("total_paid_amount");
+				Object paidObj = details.get("total_paid_amount");
+				if (!(paidObj instanceof Number))
+					continue;
+				
+				double paid = ((Number) paidObj).doubleValue();
 				
 				// Iterate over player orders to get the corresponding 
 				for (Order order : orders) {
