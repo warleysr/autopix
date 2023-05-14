@@ -129,7 +129,7 @@ public class InventoryManager {
 		
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName(fc.getString(path + ".nome").replace('&', '\u00a7')
-				.replace("{preco}", Float.toString(price)));
+				.replace("{preco}", String.format("%.2f", price).replace('.', ',')));
 		
 		if (fc.isList(path + ".descricao")) {
 			List<String> lore = new ArrayList<>();
