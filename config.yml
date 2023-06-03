@@ -64,6 +64,13 @@ menu:
         descricao:
         - '&7Gerar codigo &bQR &7para'
         - '&7pagar por PIX.'
+    desconto:
+        slot: 14
+        icone:
+            material: paper
+            nome: '&bAplicar cupom'
+            descricao:
+            - '&7Clique para informar um cupom no chat'
   # Lista de produtos disponiveis
   produtos:
     VIP1:
@@ -77,28 +84,16 @@ menu:
         descricao:
         - '&7Vip por &c30 &7dias'
         - '&7Clique para comprar por &aPIX'
-  # Menu para gerenciar os descontos
-  desconto:
-    titulo: '&9&lGerenciar descontos'
-    tamanho: 27
-    alterar:
-      slot: 13
-      icone:
-        material: paper
-        nome: '&aAplicar Cupom'
-        descricao:
-        - '&7Define o desconto na loja'
-        - ' '
-        - '&fStatus: {status}'
-    definir:
-      slot: 15
-      icone:
-        material: paper
-        nome: '&aDefinir Porcentagem'
-        descricao: 
-        - '&7Definir porcentagem de desconto'
-        - ' '
-        - '&fDesconto: &a{desconto}%'
+
+# Cadastrar cupons de desconto
+cupons:
+    desconto15:
+        porcentagem: 15
+        # (Opcional, pode ser removida) A validade considera as 0h do dia informado
+        validade: 31/12/2023
+        itens:
+        - vip1
+    
 # Som ao pagamento ser validado
 som:
   ativar: true

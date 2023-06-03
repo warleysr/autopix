@@ -32,3 +32,20 @@ erro-validar: '&b[AutoPix] &cOcorreu um erro ao validar. Tente novamente mais ta
 pix-nao-validado: '&b[AutoPix] &cNao foi possivel validar o PIX. Verifique o codigo e tente novamente.'
 mao-vazia: '&b[AutoPix] &cVoce precisa estar com a mao vazia para receber o item.'
 validando: '&b[AutoPix] &aValidando seu PIX. Aguarde um pouco.'
+
+# Desconto
+inserir-cupom:
+- ' '
+- '&b[AutoPix] &aDigite no chat o cupom a ser aplicado'
+- '&b[AutoPix] &aou digite "&fcancelar&a" para desistir da compra.'
+- ' '
+cupom-invalido: '&b[AutoPix] &cCupom invalido informado. Tente novamente.'
+cupom-nao-aplicavel: '&b[AutoPix] &cEste cupom nao pode ser aplicado neste produto.'
+cupom-expirado: '&b[AutoPix] &cO cupom informado expirou.'
+cupom-aplicado:
+- ' '
+- '&b[AutoPix] &aCupom de desconto aplicado com sucesso.'
+- '&b[AutoPix] &aVoce ganhou &f{porcentagem}% &ade desconto e'
+- '&b[AutoPix] &apagara &fR${valor} &ano produto &f{produto}&a.'
+- ' '
+compra-cancelada: '&b[AutoPix] &cCompra cancelada.'

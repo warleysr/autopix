@@ -1,11 +1,10 @@
 package io.github.warleysr.autopix.mercadopago;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -22,9 +21,7 @@ public class MercadoPagoAPI {
 	
 	private static final String API_URL = "https://api.mercadopago.com/v1/payments";
 	
-	public static String createPixPayment(AutoPix ap, Player p, OrderProduct product) {
-		HttpClient client = HttpClient.newHttpClient();
-		
+	public static String createPixPayment(AutoPix ap, Player p, OrderProduct product, float price) {	
 		String jsonBody = "{\r\n"
 				+ "  \"description\": \"" + product.getProduct() + "\",\r\n"
 				+ "  \"payer\": {\r\n"
@@ -33,22 +30,40 @@ public class MercadoPagoAPI {
 				+ "    \"email\": \"" + p.getName() + "@autopix.com\",\r\n"
 				+ "  },\r\n"
 				+ "  \"payment_method_id\": \"pix\",\r\n"
-				+ "  \"transaction_amount\": " + String.format("%.2f", product.getPrice()) + ",\r\n"
+				+ "  \"transaction_amount\": " + String.format("%.2f", price) + ",\r\n"
 				+ "	\"notification_url\": \"" 
 				+ ap.getConfig().getString("automatico.notificacoes") + "\"\r\n"
 				+ "}";
 			
-		HttpRequest req = HttpRequest.newBuilder(URI.create(API_URL))
-									 .header("Content-Type", "application/json")
-									 .header("Authorization", "Bearer " + ap.getConfig().getString("token-mp"))
-									 .POST(BodyPublishers.ofString(jsonBody))
-									 .build();
 		
 		try {
-			HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
-			if (response.statusCode() != 201) {
+			URL url = new URL(API_URL);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+	        connection.setRequestMethod("POST");
+	        connection.setDoOutput(true);
+	        connection.setRequestProperty("Content-Type", "application/json");
+	        connection.setRequestProperty("Accept", "application/json");
+	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+	        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
+                outputStream.writeBytes(jsonBody);
+                outputStream.flush();
+            }
+	        
+			int statusCode = connection.getResponseCode();
+			
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	        String line;
+	        StringBuilder response = new StringBuilder();
+
+	        while ((line = reader.readLine()) != null) {
+	            response.append(line);
+	        }
+	        reader.close();
+			
+			if (statusCode != 201) {
 				Bukkit.getConsoleSender().sendMessage("\u00a7b[AutoPix] \u00a7cErro ao validar PIX:\n" 
-						+ response.statusCode() + " - " + response.body() 
+						+ statusCode + " - " + response.toString()
 						+ "\nVerifique se configurou corretamente o token do MP.");
 				MSG.sendMessage(p, "erro-validar");
 				return null;
@@ -60,7 +75,7 @@ public class MercadoPagoAPI {
 				return null;
 			}
 			
-			JSONObject json = (JSONObject) new JSONParser().parse(response.body());
+			JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
 			JSONObject poi = (JSONObject) json.get("point_of_interaction");
 			String qr = (String) ((JSONObject) poi.get("transaction_data"))
 					        .get("qr_code");
@@ -75,19 +90,32 @@ public class MercadoPagoAPI {
 	}
 	
 	public static Object[] getPayment(AutoPix ap, String id) {
-		HttpClient client = HttpClient.newHttpClient();
-		
-		HttpRequest req = HttpRequest.newBuilder(URI.create(API_URL + "/" + id))
-				 .header("Authorization", "Bearer " + ap.getConfig().getString("token-mp"))
-				 .GET()
-				 .build();
-		
+		String responseMP = "";
 		try {
-			HttpResponse<String> response = client.send(req, BodyHandlers.ofString());
-			if (response.statusCode() != 200) {
+			URL url = new URL(API_URL + "/" + id);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+	        connection.setRequestMethod("GET");
+	        connection.setRequestProperty("Accept", "application/json");
+	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+	        
+			int statusCode = connection.getResponseCode();
+			if (statusCode != 200) {
 				return null;
 			}
-			JSONObject json = (JSONObject) new JSONParser().parse(response.body());
+			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	        String line;
+	        StringBuilder response = new StringBuilder();
+
+	        while ((line = reader.readLine()) != null) {
+	            response.append(line);
+	        }
+	        reader.close();
+	        
+	        responseMP = response.toString();
+	        
+	        
+			JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
 			String status = (String) json.get("status");
 			if (!(status.equals("approved"))) return null;
 			
@@ -100,6 +128,11 @@ public class MercadoPagoAPI {
 			
 		} catch (Exception e) {
 			e.printStackTrace();
+			Bukkit.getConsoleSender().sendMessage("\u00a7b========== \u00a7aDEBUG \u00a7b==========");
+			Bukkit.getConsoleSender().sendMessage("\u00a7aPagamento: \u00a7f" + id);
+			Bukkit.getConsoleSender().sendMessage("\u00a7aRetorno MP:");
+			Bukkit.getConsoleSender().sendMessage(responseMP.toString());
+			Bukkit.getConsoleSender().sendMessage("\u00a7b================================================");
 		}
 		return null;
 	}

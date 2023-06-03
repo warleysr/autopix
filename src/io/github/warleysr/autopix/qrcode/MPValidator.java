@@ -1,9 +1,9 @@
 package io.github.warleysr.autopix.qrcode;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 
 import org.bukkit.Bukkit;
@@ -25,26 +25,36 @@ public class MPValidator {
 	private static final String API_URL = "https://api.mercadopago.com/v1/payments/search" 
 										+ "?sort=date_created&criteria=desc";
 	
-	public static void validateTransaction(AutoPix ap, String txid, Player p) {
-		HttpClient client = HttpClient.newHttpClient();
-		
-		HttpRequest req = HttpRequest.newBuilder(URI.create(API_URL))
-									 .GET()
-									 .header("Authorization", "Bearer " + ap.getConfig().getString("token-mp"))
-									 .build();
-		
+	public static void validateTransaction(AutoPix ap, String txid, Player p) {	
 		try {
-			HttpResponse<String> response = client.send(req, HttpResponse.BodyHandlers.ofString());
-			if (response.statusCode() != 200) {
+			URL url = new URL(API_URL);
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+	        connection.setRequestMethod("GET");
+	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+
+	        int statusCode = connection.getResponseCode();
+	        
+	        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	        String line;
+	        StringBuilder response = new StringBuilder();
+
+	        while ((line = reader.readLine()) != null) {
+	            response.append(line);
+	        }
+	        reader.close();
+	        
+			if (statusCode != 200) {
 				Bukkit.getConsoleSender().sendMessage("\u00a7b[AutoPix] \u00a7cErro ao validar PIX:\n" 
-							+ response.statusCode() + " - " + response.body() 
+							+ statusCode + " - " + response.toString() 
 							+ "\nVerifique se configurou corretamente o token do MP.");
 				MSG.sendMessage(p, "erro-validar");
 				return;
 			}
+			
 			List<Order> orders = OrderManager.getOrders(p.getName());
 			
-			JSONObject json = (JSONObject) new JSONParser().parse(response.body());
+			JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
 			
 			// Iterate over transaction list to find which one has the provided ID
 			for (Object resElem : (JSONArray) json.get("results")) {

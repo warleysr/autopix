@@ -28,7 +28,7 @@ public class InventoryManager {
 	private static String menuTitle;
 	private static String confirmTitle;
 	private static String mapTitle;
-	private static int cancelSlot, confirmSlot;
+	private static int cancelSlot, confirmSlot, discountSlot;
 	private static ItemStack INFO;
 	
 	private static final HashMap<Integer, OrderProduct> PRODUCTS = new HashMap<>();
@@ -55,12 +55,15 @@ public class InventoryManager {
 		
 		cancelSlot = ap.getConfig().getInt("menu.confirmar.cancelar.slot") - 1;
 		confirmSlot = ap.getConfig().getInt("menu.confirmar.confirmar.slot") - 1;
+		discountSlot = ap.getConfig().getInt("menu.confirmar.desconto.slot") - 1;
 		
 		ItemStack cancel = loadItem(ap.getConfig(), "menu.confirmar.cancelar.icone", 0);
 		ItemStack confirm = loadItem(ap.getConfig(), "menu.confirmar.confirmar.icone", 0);
+		ItemStack discount = loadItem(ap.getConfig(), "menu.confirmar.desconto.icone", 0);
 		
 		CONFIRM.setItem(cancelSlot, cancel);
 		CONFIRM.setItem(confirmSlot, confirm);
+		CONFIRM.setItem(discountSlot, discount);
 		
 		INFO = new ItemStack(Material.WRITTEN_BOOK);
 		
@@ -116,6 +119,10 @@ public class InventoryManager {
 	
 	public static int getConfirmSlot() {
 		return confirmSlot;
+	}
+	
+	public static int getDiscountSlot() {
+		return discountSlot;
 	}
 	
 	public static OrderProduct getOrderProduct(int slot) {

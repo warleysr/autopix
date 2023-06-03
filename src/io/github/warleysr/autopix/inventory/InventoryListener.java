@@ -2,13 +2,19 @@ package io.github.warleysr.autopix.inventory;
 
 
 import java.awt.image.BufferedImage;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -27,6 +33,9 @@ import io.github.warleysr.autopix.qrcode.PixGenerator;
 public class InventoryListener implements Listener {
 	
 	private static final HashMap<String, Integer> BUYING = new HashMap<>();
+	private static final HashMap<String, Float> DISCOUNT_PRICES = new HashMap<>();
+	private static final ArrayList<String> SET_DISCOUNT = new ArrayList<>();
+	private static final SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy");
 	
 	@SuppressWarnings("deprecation")
 	@EventHandler
@@ -55,6 +64,12 @@ public class InventoryListener implements Listener {
 			p.closeInventory();
 			return;
 		}
+		if (e.getSlot() == InventoryManager.getDiscountSlot()) {
+			p.closeInventory();
+			SET_DISCOUNT.add(p.getName());
+			MSG.sendMessage(p, "inserir-cupom");
+			return;
+		}
 		if (e.getSlot() != InventoryManager.getConfirmSlot()) return;
 		
 		p.closeInventory();
@@ -71,11 +86,13 @@ public class InventoryListener implements Listener {
 		final OrderProduct op = InventoryManager.getOrderProduct(slot);
 		if (op == null) return;
 		
-		new Thread(new Runnable() {
+		final float price = DISCOUNT_PRICES.getOrDefault(p.getName(), op.getPrice());
+		
+		new BukkitRunnable() {
 			@Override
 			public void run() {
 				
-				Order ord = OrderManager.createOrder(p, op.getProduct(), op.getPrice());
+				Order ord = OrderManager.createOrder(p, op.getProduct(), price);
 				if (ord == null) {
 					MSG.sendMessage(p, "erro");
 					return;
@@ -87,9 +104,9 @@ public class InventoryListener implements Listener {
 					if (!(AutoPix.getInstance().getConfig().getBoolean("automatico.ativado")))
 						payload = PixGenerator
 								.generatePayload(AutoPix.getPixKey(), AutoPix.getPixName(), 
-										op.getProduct(), op.getPrice());
+										op.getProduct(), price);
 					else
-						payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op);
+						payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
 					
 					
 					final BufferedImage qr = ImageCreator.generateQR(payload);
@@ -114,7 +131,7 @@ public class InventoryListener implements Listener {
 				}
 				
 			}
-		}).start();
+		}.runTaskAsynchronously(AutoPix.getInstance());
 	}
 	}
 	
@@ -131,5 +148,60 @@ public class InventoryListener implements Listener {
 		if (e.hasItem() && e.getItem().hasItemMeta() && e.getItem().getItemMeta().hasDisplayName() 
 				&& e.getItem().getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle()))
 			e.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onChat(AsyncPlayerChatEvent e) {
+		if (e.isCancelled()) return;
+		Player p = e.getPlayer();
+		
+		if (!(SET_DISCOUNT.contains(p.getName()))) return;
+		
+		e.setCancelled(true);
+		
+		String coupon = e.getMessage().trim();
+		if (coupon.equalsIgnoreCase("cancelar")) {
+			SET_DISCOUNT.remove(p.getName());
+			MSG.sendMessage(p, "compra-cancelada");
+			return;
+		}
+		FileConfiguration cfg = AutoPix.getInstance().getConfig();
+		if (!(cfg.isSet("cupons." + coupon))) {
+			MSG.sendMessage(p, "cupom-invalido");
+			return;
+		}
+		Integer slot = BUYING.get(p.getName());
+		OrderProduct op = InventoryManager.getOrderProduct(slot);
+		
+		if (!(cfg.getStringList("cupons." + coupon + ".itens").contains(op.getProduct()))) {
+			MSG.sendMessage(p, "cupom-nao-aplicavel");
+			return;
+		}
+		
+		if (cfg.isSet("cupons." + coupon + ".validade")) {
+			String expire = cfg.getString("cupons." + coupon + ".validade");
+			try {
+				Date expireDate = SDF.parse(expire);
+				Date today = new Date();
+				if (today.after(expireDate)) {
+					MSG.sendMessage(p, "cupom-expirado");
+					return;
+				}
+			} catch (ParseException e1) {
+				e1.printStackTrace();
+			}
+		}
+		int discount = cfg.getInt("cupons." + coupon + ".porcentagem");
+		float newPrice = (float) ((1.0 - (discount / 100.0)) * op.getPrice());
+
+		SET_DISCOUNT.remove(p.getName());
+		DISCOUNT_PRICES.put(p.getName(), newPrice);
+		
+		p.sendMessage(MSG.getMessage("cupom-aplicado")
+				.replace("{porcentagem}", Integer.toString(discount))
+				.replace("{valor}", String.format("%.2f", newPrice).replace('.', ','))
+				.replace("{produto}", op.getProduct()));
+		
+		InventoryManager.openConfirmation(p);
 	}
 }

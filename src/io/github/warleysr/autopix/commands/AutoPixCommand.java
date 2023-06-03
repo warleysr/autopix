@@ -102,7 +102,7 @@ public class AutoPixCommand implements CommandExecutor {
 					msg += MSG.getMessage("corpo")
 							.replace("{id}", Integer.toString(ord.getId()))
 							.replace("{data}", DATE_FORMAT.format(new Date(ord.getCreated().getTime())))
-							.replace("{preco}", Float.toString(ord.getPrice()))
+							.replace("{preco}", String.format("%.2f", ord.getPrice()).replace('.', ','))
 							.replace("{produto}", ord.getProduct())
 							.replace("{status}", ord.isValidated() ? "\u00a7aAPROVADO" : "\u00a7ePENDENTE") + "\n";
 				
