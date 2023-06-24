@@ -1,4 +1,4 @@
-package io.github.warleysr.autopix.qrcode;
+package io.github.warleysr.autopix.mercadopago;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -31,6 +31,7 @@ public class MPValidator {
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
 	        connection.setRequestMethod("GET");
+	        connection.setRequestProperty("Accept", "application/json");
 	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
 
 	        int statusCode = connection.getResponseCode();

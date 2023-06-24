@@ -15,7 +15,7 @@ import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
 import io.github.warleysr.autopix.TimeManager;
 import io.github.warleysr.autopix.inventory.InventoryManager;
-import io.github.warleysr.autopix.qrcode.MPValidator;
+import io.github.warleysr.autopix.mercadopago.MPValidator;
 
 public class AutoPixCommand implements CommandExecutor {
 	

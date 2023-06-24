@@ -202,6 +202,12 @@ public class InventoryListener implements Listener {
 				.replace("{valor}", String.format("%.2f", newPrice).replace('.', ','))
 				.replace("{produto}", op.getProduct()));
 		
-		InventoryManager.openConfirmation(p);
+		new BukkitRunnable() {
+			@Override
+			public void run() {
+				InventoryManager.openConfirmation(p);
+			}
+		}.runTask(AutoPix.getInstance());
+		
 	}
 }

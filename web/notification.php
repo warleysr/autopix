@@ -47,7 +47,7 @@
         $conn->close();
         return;
     }
-    $player = explode('@', $payment["payer"]["email"])[0];
+    $player = $payment["external_reference"];
 
     $insertSql = "INSERT INTO autopix_pendings (id, player) " 
             . "VALUES ('" . $id . "', '" . $player . "');";
