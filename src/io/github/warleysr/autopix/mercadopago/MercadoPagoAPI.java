@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Locale;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -31,7 +32,7 @@ public class MercadoPagoAPI {
 				+ "  },\r\n"
 				+ " \"external_reference\": \"" + p.getName() + "\","
 				+ "  \"payment_method_id\": \"pix\",\r\n"
-				+ "  \"transaction_amount\": " + String.format("%.2f", price) + ",\r\n"
+				+ "  \"transaction_amount\": " + String.format(Locale.ROOT, "%.2f", price) + ",\r\n"
 				+ "	\"notification_url\": \"" 
 				+ ap.getConfig().getString("automatico.notificacoes") + "\"\r\n"
 				+ "}";
