@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -100,15 +101,20 @@ public class InventoryListener implements Listener {
 				
 				try {
 					String payload = null;
-					// If automatic mode is not enabled, create a static QR code
-					if (!(AutoPix.getInstance().getConfig().getBoolean("automatico.ativado")))
-						payload = PixGenerator
-								.generatePayload(AutoPix.getPixKey(), AutoPix.getPixName(), 
-										op.getProduct(), price);
-					else
+					if (AutoPix.getInstance().getConfig().getBoolean("automatico.ativado"))
 						payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
-					
-					
+					else {
+						// If automatic mode is not enabled, create a static QR code
+						payload = PixGenerator.generatePayload(
+								AutoPix.getPixKey(), AutoPix.getPixName(), op.getProduct(), price
+								);
+						
+						if (AutoPix.getInstance().getConfig().getBoolean("pix.debug", false))
+							Bukkit.getConsoleSender().sendMessage(
+									"\u00a7b[AutoPix] \u00a7aPayload: \u00a7f" + payload
+									);
+						
+					}
 					final BufferedImage qr = ImageCreator.generateQR(payload);
 					
 					new BukkitRunnable() {

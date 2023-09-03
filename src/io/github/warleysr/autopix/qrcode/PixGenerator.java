@@ -1,5 +1,7 @@
 package io.github.warleysr.autopix.qrcode;
 
+import java.util.Locale;
+
 public class PixGenerator {
 	
 	private static final String PAYLOAD_1 = "00020126"; 
@@ -10,7 +12,7 @@ public class PixGenerator {
 	private static final String PAYLOAD_6 = "6304";
 	
 	public static String generatePayload(String key, String name, String description, float price) {
-		String priceFmt = String.format("%.2f", price);
+		String priceFmt = String.format(Locale.ROOT, "%.2f", price);
 		String desc = "05" + String.format("%02d", description.length()) + description;
 		String merchant = PAYLOAD_2 + Integer.toString(key.length()) + key;
 		

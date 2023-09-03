@@ -29,7 +29,7 @@ public class MercadoPagoAPI {
 				+ "    \"type\": \"customer\",\r\n"
 				+ "    \"email\": \"" + p.getName() + "@autopix.com\",\r\n"
 				+ "  },\r\n"
-				 + " \"external_reference\": \"" + p.getName() + "\","
+				+ " \"external_reference\": \"" + p.getName() + "\","
 				+ "  \"payment_method_id\": \"pix\",\r\n"
 				+ "  \"transaction_amount\": " + String.format("%.2f", price) + ",\r\n"
 				+ "	\"notification_url\": \"" 
