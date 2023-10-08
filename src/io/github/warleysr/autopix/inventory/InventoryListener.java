@@ -33,7 +33,8 @@ import io.github.warleysr.autopix.qrcode.PixGenerator;
 
 public class InventoryListener implements Listener {
 	
-	private static final HashMap<String, Integer> BUYING = new HashMap<>();
+	private static final HashMap<String, String> BUYING_MENU = new HashMap<>();
+	private static final HashMap<String, Integer> BUYING_SLOT = new HashMap<>();
 	private static final HashMap<String, Float> DISCOUNT_PRICES = new HashMap<>();
 	private static final ArrayList<String> SET_DISCOUNT = new ArrayList<>();
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy");
@@ -41,104 +42,107 @@ public class InventoryListener implements Listener {
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onClick(InventoryClickEvent e) {
-		if (e.getView().getTitle().equals(InventoryManager.getMenuTitle())) {
+		String menu = InventoryManager.getMenuByTitle(e.getView().getTitle());
+		if (menu != null) {
 		
 			if (e.getCurrentItem() == null) return;
 			
 			e.setCancelled(true);
 			
-			final OrderProduct op = InventoryManager.getOrderProduct(e.getSlot());
+			final OrderProduct op = InventoryManager.getOrderProduct(menu, e.getSlot());
 			if (op == null) return;
 			
-			BUYING.put(e.getWhoClicked().getName(), e.getSlot());
+			BUYING_MENU.put(e.getWhoClicked().getName(), menu);
+			BUYING_SLOT.put(e.getWhoClicked().getName(), e.getSlot());
 			InventoryManager.openConfirmation((Player) e.getWhoClicked());
-	}
-	else if (e.getView().getTitle().equals(InventoryManager.getConfirmTitle())) {
-		
-		if (e.getCurrentItem() == null) return;
-		
-		e.setCancelled(true);
-		
-		final Player p = (Player) e.getWhoClicked();
-		
-		if (e.getSlot() == InventoryManager.getCancelSlot()) {
-			p.closeInventory();
-			return;
 		}
-		if (e.getSlot() == InventoryManager.getDiscountSlot()) {
-			p.closeInventory();
-			SET_DISCOUNT.add(p.getName());
-			MSG.sendMessage(p, "inserir-cupom");
-			return;
-		}
-		if (e.getSlot() != InventoryManager.getConfirmSlot()) return;
+		else if (e.getView().getTitle().equals(InventoryManager.getConfirmTitle())) {
 		
-		p.closeInventory();
-		
-		if (p.getInventory().getItemInHand().getType() != Material.AIR) {
-			MSG.sendMessage(p, "mao-vazia");
-			return;
-		}
-		if (!(TimeManager.canExecute(AutoPix.getInstance(), p, "create"))) return;
-		
-		Integer slot = BUYING.get(p.getName());
-		if (slot == null) return;
-		
-		final OrderProduct op = InventoryManager.getOrderProduct(slot);
-		if (op == null) return;
-		
-		final float price = DISCOUNT_PRICES.getOrDefault(p.getName(), op.getPrice());
-		
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				
-				Order ord = OrderManager.createOrder(p, op.getProduct(), price);
-				if (ord == null) {
-					MSG.sendMessage(p, "erro");
-					return;
-				}
-				
-				try {
-					String payload = null;
-					if (AutoPix.getInstance().getConfig().getBoolean("automatico.ativado"))
-						payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
-					else {
-						// If automatic mode is not enabled, create a static QR code
-						payload = PixGenerator.generatePayload(
-								AutoPix.getPixKey(), AutoPix.getPixName(), op.getProduct(), price
-								);
-						
-						if (AutoPix.getInstance().getConfig().getBoolean("pix.debug", false))
-							Bukkit.getConsoleSender().sendMessage(
-									"\u00a7b[AutoPix] \u00a7aPayload: \u00a7f" + payload
-									);
-						
-					}
-					final BufferedImage qr = ImageCreator.generateQR(payload);
-					
-					new BukkitRunnable() {
-						@Override
-						public void run() {
-							
-							ImageCreator.generateMap(qr, p, op);
-							
-							if (AutoPix.getRunningVersion() >= 1009)
-								p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
-							else {
-								MSG.sendMessage(p, "titulo-qr");
-								MSG.sendMessage(p, "subtitulo-qr");
-							}
-						}
-					}.runTask(AutoPix.getInstance());
-					
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				
+			if (e.getCurrentItem() == null) return;
+			
+			e.setCancelled(true);
+			
+			final Player p = (Player) e.getWhoClicked();
+			
+			if (e.getSlot() == InventoryManager.getCancelSlot()) {
+				p.closeInventory();
+				return;
 			}
-		}.runTaskAsynchronously(AutoPix.getInstance());
-	}
+			if (e.getSlot() == InventoryManager.getDiscountSlot()) {
+				p.closeInventory();
+				SET_DISCOUNT.add(p.getName());
+				MSG.sendMessage(p, "inserir-cupom");
+				return;
+			}
+			if (e.getSlot() != InventoryManager.getConfirmSlot()) return;
+			
+			p.closeInventory();
+			
+			if (p.getInventory().getItemInHand().getType() != Material.AIR) {
+				MSG.sendMessage(p, "mao-vazia");
+				return;
+			}
+			if (!(TimeManager.canExecute(AutoPix.getInstance(), p, "create"))) return;
+			
+			menu = BUYING_MENU.get(p.getName());
+			Integer slot = BUYING_SLOT.get(p.getName());
+			if (menu == null || slot == null) return;
+			
+			final OrderProduct op = InventoryManager.getOrderProduct(menu, slot);
+			if (op == null) return;
+			
+			final float price = DISCOUNT_PRICES.getOrDefault(p.getName(), op.getPrice());
+			
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					
+					Order ord = OrderManager.createOrder(p, op.getProduct(), price);
+					if (ord == null) {
+						MSG.sendMessage(p, "erro");
+						return;
+					}
+					
+					try {
+						String payload = null;
+						if (AutoPix.getInstance().getConfig().getBoolean("automatico.ativado"))
+							payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
+						else {
+							// If automatic mode is not enabled, create a static QR code
+							payload = PixGenerator.generatePayload(
+									AutoPix.getPixKey(), AutoPix.getPixName(), op.getProduct(), price
+									);
+							
+							if (AutoPix.getInstance().getConfig().getBoolean("pix.debug", false))
+								Bukkit.getConsoleSender().sendMessage(
+										"\u00a7b[AutoPix] \u00a7aPayload: \u00a7f" + payload
+										);
+							
+						}
+						final BufferedImage qr = ImageCreator.generateQR(payload);
+						
+						new BukkitRunnable() {
+							@Override
+							public void run() {
+								
+								ImageCreator.generateMap(qr, p, op);
+								
+								if (AutoPix.getRunningVersion() >= 1009)
+									p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
+								else {
+									MSG.sendMessage(p, "titulo-qr");
+									MSG.sendMessage(p, "subtitulo-qr");
+								}
+							}
+						}.runTask(AutoPix.getInstance());
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+					
+				}
+			}.runTaskAsynchronously(AutoPix.getInstance());
+		}
 	}
 	
 	@EventHandler
@@ -176,8 +180,9 @@ public class InventoryListener implements Listener {
 			MSG.sendMessage(p, "cupom-invalido");
 			return;
 		}
-		Integer slot = BUYING.get(p.getName());
-		OrderProduct op = InventoryManager.getOrderProduct(slot);
+		String menu = BUYING_MENU.get(p.getName());
+		Integer slot = BUYING_SLOT.get(p.getName());
+		OrderProduct op = InventoryManager.getOrderProduct(menu, slot);
 		
 		if (!(cfg.getStringList("cupons." + coupon + ".itens").contains(op.getProduct()))) {
 			MSG.sendMessage(p, "cupom-nao-aplicavel");

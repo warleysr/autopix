@@ -23,29 +23,42 @@ import io.github.warleysr.autopix.OrderProduct;
 
 public class InventoryManager {
 	
-	private static Inventory MENU;
+	private static HashMap<String, Inventory> MENUS = new HashMap<>();
+	private static HashMap<String, String> MENUS_TITLES = new HashMap<>();
 	private static Inventory CONFIRM;
-	private static String menuTitle;
 	private static String confirmTitle;
 	private static String mapTitle;
 	private static int cancelSlot, confirmSlot, discountSlot;
 	private static ItemStack INFO;
 	
-	private static final HashMap<Integer, OrderProduct> PRODUCTS = new HashMap<>();
+	private static final HashMap<String, HashMap<Integer, OrderProduct>> PRODUCTS = new HashMap<>();
 	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy '\u00e0s' HH:mm");
 	
 	public static void createMenuInventory(AutoPix ap) {
-		menuTitle = ap.getConfig().getString("menu.titulo").replace('&', '\u00a7');
-		MENU = Bukkit.createInventory(null, ap.getConfig().getInt("menu.tamanho"), menuTitle);
 		
-		for (String product : ap.getConfig().getConfigurationSection("menu.produtos").getKeys(false)) {
-			float price = (float) ap.getConfig().getDouble("menu.produtos." + product + ".preco");
-			int slot = ap.getConfig().getInt("menu.produtos." + product + ".icone.slot") - 1;
+		for (String menu : ap.getConfig().getConfigurationSection("menu").getKeys(false)) {
+			menu = menu.toLowerCase();
+			if (menu.equals("confirmar")) continue; 
 			
-			ItemStack icon = loadItem(ap.getConfig(), "menu.produtos." + product + ".icone", price);
+			String menuTitle = ap.getConfig().getString("menu." + menu + ".titulo").replace('&', '\u00a7');
+			Inventory inv = Bukkit.createInventory(null, ap.getConfig().getInt("menu." + menu + ".tamanho"), menuTitle);
 			
-			MENU.setItem(slot, icon);
-			PRODUCTS.put(slot, new OrderProduct(product, price, icon));
+			for (String product : ap.getConfig().getConfigurationSection("menu." + menu + ".produtos").getKeys(false)) {
+				float price = (float) ap.getConfig().getDouble("menu." + menu + ".produtos." + product + ".preco");
+				int slot = ap.getConfig().getInt("menu." + menu + ".produtos." + product + ".icone.slot") - 1;
+				
+				ItemStack icon = loadItem(ap.getConfig(), "menu." + menu + ".produtos." + product + ".icone", price);
+				
+				inv.setItem(slot, icon);
+				
+				if (!(PRODUCTS.containsKey(menu)))
+					PRODUCTS.put(menu, new HashMap<>());
+				
+				PRODUCTS.get(menu).put(slot, new OrderProduct(product, price, icon));
+			}
+			
+			MENUS.put(menu, inv);
+			MENUS_TITLES.put(menuTitle, menu);
 		}
 		
 		confirmTitle = ap.getConfig().getString("menu.confirmar.titulo").replace('&', '\u00a7');
@@ -82,8 +95,9 @@ public class InventoryManager {
 		INFO.setItemMeta(meta);
 	}
 	
-	public static void openMenu(Player p) {
-		p.openInventory(MENU);
+	public static void openMenu(Player p, String menu) {
+		if (MENUS.containsKey(menu))
+			p.openInventory(MENUS.get(menu));
 	}
 	
 	public static void openConfirmation(Player p) {
@@ -101,8 +115,10 @@ public class InventoryManager {
 		
 	}
 	
-	public static String getMenuTitle() {
-		return menuTitle;
+	public static String getMenuByTitle(String title) {
+		if (MENUS_TITLES.containsKey(title))
+			return MENUS_TITLES.get(title);
+		return null;
 	}
 	
 	public static String getMapTitle() {
@@ -125,8 +141,8 @@ public class InventoryManager {
 		return discountSlot;
 	}
 	
-	public static OrderProduct getOrderProduct(int slot) {
-		return PRODUCTS.get(slot);
+	public static OrderProduct getOrderProduct(String menu, int slot) {
+		return PRODUCTS.get(menu).get(slot);
 	}
 	
 	@SuppressWarnings("deprecation")

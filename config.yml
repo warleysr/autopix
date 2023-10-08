@@ -43,10 +43,24 @@ mapa:
   # Intervalo em SEGUNDOS que a verificacao ira ocorrer
   intervalo: 60
   
-# Menu para compra de produtos por PIX
+# Menus para compra de produtos por PIX
 menu:
-  titulo: '&9&lCompre produtos por &c&lPIX'
-  tamanho: 54
+  principal:
+      titulo: '&9&lCompre produtos por &c&lPIX'
+      tamanho: 54
+      # Lista de produtos disponiveis
+      produtos:
+        VIP1:
+          preco: 0.23
+          comandos:
+          - 'say {player} pagou por PIX!'
+          icone:
+            slot: 5
+            material: diamond_sword
+            nome: '&6&lVIP 1 &7- &aR${preco}'
+            descricao:
+            - '&7Vip por &c30 &7dias'
+            - '&7Clique para comprar por &aPIX'
   # Menu para confirmar compra
   confirmar:
     titulo: '&9&lConfirmar compra por &c&lPIX'
@@ -73,19 +87,6 @@ menu:
             nome: '&bAplicar cupom'
             descricao:
             - '&7Clique para informar um cupom no chat'
-  # Lista de produtos disponiveis
-  produtos:
-    VIP1:
-      preco: 0.23
-      comandos:
-      - 'say {player} pagou por PIX!'
-      icone:
-        slot: 5
-        material: diamond_sword
-        nome: '&6&lVIP 1 &7- &aR${preco}'
-        descricao:
-        - '&7Vip por &c30 &7dias'
-        - '&7Clique para comprar por &aPIX'
 
 # Cadastrar cupons de desconto
 cupons:

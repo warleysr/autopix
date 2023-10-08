@@ -22,7 +22,10 @@ public class APMenuCommand implements CommandExecutor {
 				MSG.sendMessage(p, "sem-permissao");
 				return false;
 			}
-			InventoryManager.openMenu(p);
+			if (args.length == 0)
+				InventoryManager.openMenu(p, "principal");
+			else
+				InventoryManager.openMenu(p, args[0].toLowerCase());
 		}
 		return true;
 	}
