@@ -1,6 +1,7 @@
 package io.github.warleysr.autopix;
 
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -26,23 +27,40 @@ public class OrderManager {
 	
 	private static Connection conn;
 	
-	protected static void startOrderManager(AutoPix ap) throws SQLException {
+	protected static boolean startOrderManager(AutoPix ap) throws SQLException {
 		FileConfiguration cfg = ap.getConfig();
 		
-		String host = cfg.getString("mysql.host").trim(), user = cfg.getString("mysql.user").trim(), 
-			   pass = cfg.getString("mysql.pass").trim(), db = cfg.getString("mysql.db").trim();
-		int port = cfg.getInt("mysql.port");
+		String type = cfg.getString("database.type");
+		String autoIncrement = null;
 		
-		String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?autoReconnect=true&characterEncoding=utf8";
-		conn = DriverManager.getConnection(url, user, pass);
+		if (type.equalsIgnoreCase("mysql")) {
+			String host = cfg.getString("database.host").trim(), user = cfg.getString("database.user").trim(), 
+				   pass = cfg.getString("database.pass").trim(), db = cfg.getString("database.db").trim();
+			int port = cfg.getInt("database.port");
+			autoIncrement = "AUTO_INCREMENT";
+			
+			String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?autoReconnect=true&characterEncoding=utf8";
+			conn = DriverManager.getConnection(url, user, pass);
+		}
+		else if (type.equalsIgnoreCase("sqlite")) {
+			autoIncrement = "AUTOINCREMENT";
+			File flatFile = new File(ap.getDataFolder(), "autopix.db");
+			conn = DriverManager.getConnection("jdbc:sqlite:" + flatFile.getAbsolutePath());
+		}
+		else {
+			MSG.sendMessage(Bukkit.getConsoleSender(), "db-invalido");
+			return false;
+		}
 		
 		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_orders "
-				+ "(id INT PRIMARY KEY AUTO_INCREMENT, player VARCHAR(16) NOT NULL,"
+				+ "(id INTEGER PRIMARY KEY " + autoIncrement + ", player VARCHAR(16) NOT NULL,"
 				+ "product VARCHAR(16) NOT NULL, price DECIMAL(10, 2) NOT NULL, "
 				+ "created TIMESTAMP NOT NULL, pix VARCHAR(32) UNIQUE NULL);").executeUpdate();
 		
 		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_pendings " 
 				+ "(id VARCHAR(32) PRIMARY KEY, player VARCHAR(16) NOT NULL);").executeUpdate();
+		
+		return true;
 	}
 	
 	public static Order createOrder(Player p, String product, float price) {

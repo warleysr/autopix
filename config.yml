@@ -17,7 +17,8 @@ automatico:
   notificacoes: 'http://meusite.com/autopix/notification.php'
   
 # Servidor MySQL para salvamento dos dados
-mysql:
+database:
+  type: mysql
   db: tests
   host: localhost
   port: 3306

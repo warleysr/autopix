@@ -1,9 +1,10 @@
 # Erros
 in-game: '&b[AutoPix] &cEste comando so pode ser usado dentro do jogo.'
 sem-permissao: '&b[AutoPix] &cVoce nao possui permissao!'
-erro-sql: '&b[AutoPix] &cErro ao iniciar MySQL. Verifique o erro: {mensagem}'
+erro-sql: '&b[AutoPix] &cErro ao iniciar conexao ao banco. Verifique o erro: {mensagem}'
 erro: '&b[AutoPix] &cOcorreu um erro. Tente novamente mais tarde.'
 aguarde: '&b[AutoPix] &cAguarde mais &f{tempo} &csegundos para executar essa acao novamente.'
+db-invalido: '&b[AutoPix] &cO tipo de banco de dados informado nao e valido.'
 
 
 # Titulo

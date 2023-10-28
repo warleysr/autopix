@@ -33,7 +33,10 @@ public class AutoPix extends JavaPlugin {
 		MSG.loadMessages(this);
 		
 		try {
-			OrderManager.startOrderManager(this);
+			if (!(OrderManager.startOrderManager(this))) {
+				setEnabled(false);
+				return;
+			}
 			
 		} catch (SQLException e) {
 			Bukkit.getConsoleSender().sendMessage(MSG.getMessage("erro-sql")
