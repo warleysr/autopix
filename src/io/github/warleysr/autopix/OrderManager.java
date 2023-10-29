@@ -20,6 +20,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import io.github.warleysr.autopix.inventory.InventoryManager;
 import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
 import io.github.warleysr.autopix.qrcode.ImageCreator;
 
@@ -169,6 +170,8 @@ public class OrderManager {
 				double paid = (double) data[1];
 				
 				for (Order order : getOrders(player)) {
+					OrderProduct op = InventoryManager.getProductByOrder(order);
+					if (op == null) continue;
 					if (order.isValidated()) continue;
 					if (Math.abs(order.getPrice() - paid) > 0.001) continue;
 					
@@ -194,15 +197,13 @@ public class OrderManager {
 								try {
 									Sound sound = Sound.valueOf(
 											ap.getConfig().getString("som.efeito").toUpperCase());
-									p.playSound(p, sound, 1, 1);
+									p.playSound(p.getLocation(), sound, 1, 1);
 								} catch (Exception e) {}
 							}
 							
-							for (String cmd : ap.getConfig().getStringList("menu.produtos." 
-									+ order.getProduct() + ".comandos")) {
+							for (String cmd : op.getCommands())
 								Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
 										cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
-							}
 						}
 					}.runTask(ap);
 					break;

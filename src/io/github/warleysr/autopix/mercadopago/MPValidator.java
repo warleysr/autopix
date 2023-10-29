@@ -17,6 +17,7 @@ import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
 import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
+import io.github.warleysr.autopix.OrderProduct;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 
 
@@ -76,6 +77,8 @@ public class MPValidator {
 				
 				// Iterate over player orders to get the corresponding 
 				for (Order order : orders) {
+					OrderProduct op = InventoryManager.getProductByOrder(order);
+					if (op == null) continue;
 					if (order.isValidated()) continue;
 					if (Math.abs(order.getPrice() - paid) > 0.001) continue;
 					if (OrderManager.setTransaction(order, txid)) {
@@ -86,11 +89,9 @@ public class MPValidator {
 								public void run() {
 									InventoryManager.removeUnpaidMaps(p);
 									
-									for (String cmd : ap.getConfig().getStringList("menu.produtos." 
-											+ order.getProduct() + ".comandos")) {
+									for (String cmd : op.getCommands())
 										Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
 												cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
-									}
 								}
 							}.runTask(ap);
 					}

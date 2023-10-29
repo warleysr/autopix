@@ -19,6 +19,7 @@ import org.bukkit.inventory.meta.MapMeta;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
+import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderProduct;
 
 public class InventoryManager {
@@ -54,7 +55,8 @@ public class InventoryManager {
 				if (!(PRODUCTS.containsKey(menu)))
 					PRODUCTS.put(menu, new HashMap<>());
 				
-				PRODUCTS.get(menu).put(slot, new OrderProduct(product, price, icon));
+				List<String> commands = ap.getConfig().getStringList("menu." + menu + ".produtos." + product + ".comandos");
+				PRODUCTS.get(menu).put(slot, new OrderProduct(product, price, icon, commands));
 			}
 			
 			MENUS.put(menu, inv);
@@ -145,6 +147,14 @@ public class InventoryManager {
 		return PRODUCTS.get(menu).get(slot);
 	}
 	
+	public static OrderProduct getProductByOrder(Order order) {
+		for (HashMap<Integer, OrderProduct> map : PRODUCTS.values())
+			for (OrderProduct op : map.values())
+				if (op.getProduct().equals(order.getProduct()))
+					return op;
+		return null;
+	}
+	
 	@SuppressWarnings("deprecation")
 	private static ItemStack loadItem(FileConfiguration fc, String path, float price) {
 		Material material = Material.getMaterial(fc.getString(path + ".material").toUpperCase());
@@ -164,7 +174,8 @@ public class InventoryManager {
 		
 		item.setDurability((short) fc.getInt(path + ".data", 0));
 		
-		meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+		if (AutoPix.getRunningVersion() >= 1008)
+			meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 		item.setItemMeta(meta);
 		
 		return item;
