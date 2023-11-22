@@ -9,29 +9,35 @@ public class OrderProduct {
 	private String product;
 	private float price;
 	private ItemStack icon;
+	private List<String> preCommands;
 	private List<String> commands;
 	
-	public OrderProduct(String product, float price, ItemStack icon, List<String> commands) {
+	public OrderProduct(String product, float price, ItemStack icon, List<String> preCommands, List<String> commands) {
 		this.product = product;
 		this.price = price;
 		this.icon = icon;
+		this.preCommands = preCommands;
 		this.commands = commands;
 	}
 	
 	public String getProduct() {
-		return product;
+		return this.product;
 	}
 	
 	public float getPrice() {
-		return price;
+		return this.price;
 	}
 	
 	public ItemStack getIcon() {
-		return icon;
+		return this.icon;
+	}
+	
+	public List<String> getPreCommands() {
+		return this.preCommands;
 	}
 	
 	public List<String> getCommands() {
-		return commands;
+		return this.commands;
 	}
 
 }

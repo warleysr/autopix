@@ -55,8 +55,9 @@ public class InventoryManager {
 				if (!(PRODUCTS.containsKey(menu)))
 					PRODUCTS.put(menu, new HashMap<>());
 				
+				List<String> preCommands = ap.getConfig().getStringList("menu." + menu + ".produtos." + product + ".pre-comandos");
 				List<String> commands = ap.getConfig().getStringList("menu." + menu + ".produtos." + product + ".comandos");
-				PRODUCTS.get(menu).put(slot, new OrderProduct(product, price, icon, commands));
+				PRODUCTS.get(menu).put(slot, new OrderProduct(product, price, icon, preCommands, commands));
 			}
 			
 			MENUS.put(menu, inv);

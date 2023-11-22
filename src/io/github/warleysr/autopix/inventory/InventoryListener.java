@@ -105,7 +105,10 @@ public class InventoryListener implements Listener {
 					
 					try {
 						String payload = null;
-						if (AutoPix.getInstance().getConfig().getBoolean("automatico.ativado"))
+						boolean automaticMode = AutoPix.getInstance().getConfig().getBoolean("automatico.ativado");
+						boolean generateMap = AutoPix.getInstance().getConfig().getBoolean("pix.mapa");
+						
+						if (automaticMode)
 							payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
 						else {
 							// If automatic mode is not enabled, create a static QR code
@@ -119,13 +122,16 @@ public class InventoryListener implements Listener {
 										);
 							
 						}
-						final BufferedImage qr = ImageCreator.generateQR(payload);
+						final BufferedImage qr = (automaticMode || generateMap) ? ImageCreator.generateQR(payload) : null;
 						
 						new BukkitRunnable() {
 							@Override
 							public void run() {
+								for (String preCmd : op.getPreCommands())
+									Bukkit.dispatchCommand(p, preCmd.replace("{player}", p.getName()));
 								
-								ImageCreator.generateMap(qr, p, op);
+								if (automaticMode || generateMap)
+									ImageCreator.generateMap(qr, p, op);
 								
 								if (AutoPix.getRunningVersion() >= 1009)
 									p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);

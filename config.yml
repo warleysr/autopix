@@ -9,6 +9,8 @@ pix:
   nome: 'Fulano de Tal'
   # Ative essa opcao para receber a payload dos codigos gerados
   debug: false
+  # Desative essa opcao para nao enviar o mapa para o jogador no modo manual
+  mapa: true
 
 # Modo de ativacao automatico
 automatico:
@@ -53,6 +55,8 @@ menu:
       produtos:
         VIP1:
           preco: 0.23
+          pre-comandos:
+          - 'say {player} gerou uma ordem PIX!'
           comandos:
           - 'say {player} pagou por PIX!'
           icone:
