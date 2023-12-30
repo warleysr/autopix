@@ -54,6 +54,7 @@ public class InventoryListener implements Listener {
 			
 			BUYING_MENU.put(e.getWhoClicked().getName(), menu);
 			BUYING_SLOT.put(e.getWhoClicked().getName(), e.getSlot());
+			DISCOUNT_PRICES.remove(e.getWhoClicked().getName());
 			InventoryManager.openConfirmation((Player) e.getWhoClicked());
 		}
 		else if (e.getView().getTitle().equals(InventoryManager.getConfirmTitle())) {

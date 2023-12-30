@@ -1,5 +1,5 @@
 name: AutoPix
-version: 1.0.16
+version: 1.0.17
 main: io.github.warleysr.autopix.AutoPix
 author: warleysr
 api-version: 1.13
