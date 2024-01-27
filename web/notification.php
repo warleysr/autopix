@@ -3,22 +3,22 @@
     const USER = "dbadmin";
     const PASSWORD = "admindb";
     const DB = "tests";
-    const ACCESS_TOKEN = "<SEU_TOKEN_MERCADO_PAGO>";
+    const ACCESS_TOKEN = "SEU_TOKEN_MERCADO_PAGO";
 
    if ($_SERVER["REQUEST_METHOD"] != "POST") {
         http_response_code(500);
         return;
    }
-   if (!(isset($_GET['data_id'])) && !(isset($_GET['type']))) {
+   if (!(isset($_GET['id'])) && !(isset($_GET['topic']))) {
         http_response_code(500);
         return;
    }
-   if ($_GET['type'] != "payment") {
+   if ($_GET['topic'] != "payment") {
         http_response_code(500);
         return;
    }
 
-   $id = $_GET['data_id'];
+   $id = $_GET['id'];
 
    $curl = curl_init();
 
