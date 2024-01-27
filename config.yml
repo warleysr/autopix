@@ -1,10 +1,10 @@
 # Token do MercadoPago para consultar transacoes
-token-mp: '<SEU TOKEN DO MERCADO PAGO>'
+token-mp: 'SEU TOKEN DO MERCADO PAGO'
 
 # Configuracoes do PIX
 pix:
   # CPF, CNPJ, Celular com +55 e DDD, email ou aleatoria 
-  chave: '<SUA CHAVE PIX>'
+  chave: 'SUA CHAVE PIX'
   # Nome do beneficiario com ate 25 caracteres
   nome: 'Fulano de Tal'
   # Ative essa opcao para receber a payload dos codigos gerados
