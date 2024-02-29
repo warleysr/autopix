@@ -28,7 +28,7 @@ public class MercadoPagoAPI {
 				+ "  \"payer\": {\r\n"
 				+ "    \"entity_type\": \"individual\",\r\n"
 				+ "    \"type\": \"customer\",\r\n"
-				+ "    \"email\": \"" + p.getName() + "@autopix.com\",\r\n"
+				+ "    \"email\": \"" + p.getName() + "@autopix.com\"\r\n"
 				+ "  },\r\n"
 				+ " \"external_reference\": \"" + p.getName() + "\","
 				+ "  \"payment_method_id\": \"pix\",\r\n"
@@ -36,7 +36,6 @@ public class MercadoPagoAPI {
 				+ "	\"notification_url\": \"" 
 				+ ap.getConfig().getString("automatico.notificacoes") + "\"\r\n"
 				+ "}";
-			
 		
 		try {
 			URL url = new URL(API_URL);
