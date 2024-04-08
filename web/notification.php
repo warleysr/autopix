@@ -1,9 +1,10 @@
 <?php
-    const HOST = "localhost";
-    const USER = "dbadmin";
-    const PASSWORD = "admindb";
-    const DB = "tests";
-    const ACCESS_TOKEN = "SEU_TOKEN_MERCADO_PAGO";
+    $data = json_decode(file_get_contents("config.json"), true);
+    const HOST = $data["host"];
+    const USER = $data["user"];
+    const PASSWORD = $data["password"];
+    const DB = $data["db"];
+    const ACCESS_TOKEN = $data["access_token"];
 
    if ($_SERVER["REQUEST_METHOD"] != "POST") {
         http_response_code(500);
