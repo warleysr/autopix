@@ -7,6 +7,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import io.github.warleysr.autopix.commands.APMenuCommand;
 import io.github.warleysr.autopix.commands.AutoPixCommand;
@@ -17,6 +18,8 @@ public class AutoPix extends JavaPlugin {
 	
 	private static String PIX_KEY;
 	private static String PIX_NAME;
+	private static BukkitTask VALIDATE_TASK;
+	private static BukkitTask MAPS_TASK;
 	
 	private static AutoPix instance;
 	
@@ -25,62 +28,12 @@ public class AutoPix extends JavaPlugin {
 		instance = this;
 		
 		saveDefaultConfig();
-		reloadConfig();
-		
-		PIX_KEY = getConfig().getString("pix.chave");
-		PIX_NAME = getConfig().getString("pix.nome");
-		
-		MSG.loadMessages(this);
-		
-		try {
-			if (!(OrderManager.startOrderManager(this))) {
-				setEnabled(false);
-				return;
-			}
-			
-		} catch (SQLException e) {
-			Bukkit.getConsoleSender().sendMessage(MSG.getMessage("erro-sql")
-					.replace("{mensagem}", e.getMessage()));
-			setEnabled(false);
-			return;
-		}
-		
-		InventoryManager.createMenuInventory(this);
+		reloadPlugin();
 		
 		getCommand("autopix").setExecutor(new AutoPixCommand());
 		getCommand("autopixmenu").setExecutor(new APMenuCommand());
 		
 		Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
-		
-		// Start async task to validate transactions automatically
-		if (getConfig().getBoolean("automatico.ativado")) {
-			int interval = getConfig().getInt("automatico.intervalo");
-			
-			new BukkitRunnable() {
-				@Override
-				public void run() {
-					OrderManager.validatePendings(AutoPix.this);
-				}
-			}.runTaskTimerAsynchronously(this, interval * 20L, interval * 20L);
-		}
-		
-		// Start task to remove unpaid maps
-		int remInterval = getConfig().getInt("mapa.intervalo");
-		new BukkitRunnable() {		
-			@Override
-			public void run() {
-				for (Player p : Bukkit.getOnlinePlayers()) {
-					Order order = OrderManager.getLastOrder(p.getName());
-					if (order == null) continue;
-					
-					long diff = System.currentTimeMillis() - order.getCreated().getTime();
-					long minutes = TimeUnit.MILLISECONDS.toMinutes(diff);
-					
-					if (minutes >= getInstance().getConfig().getInt("mapa.tempo-pagar"))
-						InventoryManager.removeUnpaidMaps(p);
-				}
-			}
-		}.runTaskTimerAsynchronously(this, remInterval * 20L, remInterval * 20L);
 	}
 	
 	public static AutoPix getInstance() {
@@ -101,6 +54,68 @@ public class AutoPix extends JavaPlugin {
 		int minor = Integer.valueOf(version[1]);
 		
 		return major * 1000 + minor;
+	}
+	
+	public static void reloadPlugin() {
+		AutoPix plugin = getInstance();
+		plugin.reloadConfig();
+		
+		PIX_KEY = plugin.getConfig().getString("pix.chave");
+		PIX_NAME = plugin.getConfig().getString("pix.nome");
+		
+		MSG.loadMessages(plugin);
+		
+		try {
+			if (!(OrderManager.startOrderManager(plugin))) {
+				plugin.setEnabled(false);
+				return;
+			}
+			
+		} catch (SQLException e) {
+			Bukkit.getConsoleSender().sendMessage(MSG.getMessage("erro-sql")
+					.replace("{mensagem}", e.getMessage()));
+			plugin.setEnabled(false);
+			return;
+		}
+		
+		InventoryManager.createMenuInventory(plugin);
+		
+		// Start async task to validate transactions automatically
+		if (plugin.getConfig().getBoolean("automatico.ativado")) {
+			if (VALIDATE_TASK != null)
+				VALIDATE_TASK.cancel();
+			
+			int interval = plugin.getConfig().getInt("automatico.intervalo");
+			
+			VALIDATE_TASK = new BukkitRunnable() {
+				@Override
+				public void run() {
+					OrderManager.validatePendings(plugin);
+				}
+			}.runTaskTimerAsynchronously(plugin, interval * 20L, interval * 20L);
+		}
+		
+		// Start task to remove unpaid maps
+		if (MAPS_TASK != null)
+			MAPS_TASK.cancel();
+		
+		int remInterval = plugin.getConfig().getInt("mapa.intervalo");
+		
+		MAPS_TASK = new BukkitRunnable() {		
+			@Override
+			public void run() {
+				for (Player p : Bukkit.getOnlinePlayers()) {
+					Order order = OrderManager.getLastOrder(p.getName());
+					if (order == null) continue;
+					
+					long diff = System.currentTimeMillis() - order.getCreated().getTime();
+					long minutes = TimeUnit.MILLISECONDS.toMinutes(diff);
+					
+					if (minutes >= plugin.getConfig().getInt("mapa.tempo-pagar"))
+						InventoryManager.removeUnpaidMaps(p);
+				}
+			}
+		}.runTaskTimerAsynchronously(plugin, remInterval * 20L, remInterval * 20L);
 	}
 
 }

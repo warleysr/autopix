@@ -25,6 +25,11 @@ sem-ordens: '&b[AutoPix] &cNenhuma ordem PIX encontrada. Use &f/comprarpix&c.'
 cabecalho: '&7========== &bSuas ordens por PIX &7==========='
 corpo: '&7[&c{id}&7] {data} - &f{produto} (&cR${preco}&f) &7- {status}'
 
+# Top
+sem-doadores: '&b[AutoPix] &c7Ainda nao tivemos nenhum doador. Seja o primeiro!'
+cabecalho-top: '&7========== &bTop Doadores por PIX &7==========='
+corpo-top: '&a{doador} &f- Total: &cR${total}'
+
 # Validar
 ajuda-validar: '&b[AutoPix] &cUse &f/ap validar <ID do PIX>&c.'
 pix-invalido: '&b[AutoPix] &cO codigo informado nao e um PIX valido.'
@@ -33,6 +38,7 @@ erro-validar: '&b[AutoPix] &cOcorreu um erro ao validar. Tente novamente mais ta
 pix-nao-validado: '&b[AutoPix] &cNao foi possivel validar o PIX. Verifique o codigo e tente novamente.'
 mao-vazia: '&b[AutoPix] &cVoce precisa estar com a mao vazia para receber o item.'
 validando: '&b[AutoPix] &aValidando seu PIX. Aguarde um pouco.'
+reload-executado: '&b[AutoPix] &aReload executado com sucesso.'
 
 # Desconto
 inserir-cupom:

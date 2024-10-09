@@ -32,7 +32,7 @@ tempos:
   validar: 60
   lista: 30
   criar-pedido: 300
-  
+
 # Mapa de pagamento
 mapa:
   nome: '&aQR code de pagamento'

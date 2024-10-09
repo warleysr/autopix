@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import io.github.warleysr.autopix.AutoPix;
+import io.github.warleysr.autopix.DonorInfo;
 import io.github.warleysr.autopix.MSG;
 import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
@@ -81,6 +82,53 @@ public class AutoPixCommand implements CommandExecutor {
 				}).start();
 				return true;
 			}
+			else if (args[0].equalsIgnoreCase("cancelar")) {
+				if (args.length == 1) {
+					MSG.sendMessage(sender, "ajuda-cancelar");
+					return false;
+				}
+			}
+			else if (args[0].equalsIgnoreCase("reload")) {
+				if (!sender.hasPermission("autopix.admin")) {
+					MSG.sendMessage(sender, "sem-permissao");
+					return false;
+				}
+				AutoPix.reloadPlugin();
+				MSG.sendMessage(sender, "reload-executado");
+				return false;
+			}
+			else if (args[0].equalsIgnoreCase("top")) {
+				if (sender instanceof Player 
+						&& !TimeManager.canExecute(AutoPix.getInstance(), (Player) sender, "list"))
+					return false;
+				
+				
+				new Thread(() -> {
+					List<DonorInfo> topDonors = OrderManager.getTopDonors();
+					
+					if (topDonors.size() == 0) {
+						MSG.sendMessage(sender, "sem-doadores");
+						return;
+					}
+					
+					StringBuilder message = new StringBuilder();
+					message.append(MSG.getMessage("cabecalho-top"));
+					message.append("\n");
+					
+					for (DonorInfo info : topDonors) {
+						message.append(MSG.getMessage("corpo-top")
+								.replace("{doador}", info.getDonor())
+								.replace("{total}", String.format("%.2f", info.getTotal()).replace('.', ','))
+								);
+						message.append("\n");
+					}
+					message.append("\n");
+					
+					sender.sendMessage(message.toString());
+					
+				}).start();
+				return false;
+			}
 		}
 
 		// Caso nenhum subcomando seja identificado, envia a mensagem de ajuda.
@@ -97,17 +145,21 @@ public class AutoPixCommand implements CommandExecutor {
 					MSG.sendMessage(sender, "sem-ordens");
 					return;
 				}
-				String msg = MSG.getMessage("cabecalho") + "\n";
-				for (Order ord : orders)
-					msg += MSG.getMessage("corpo")
+				StringBuilder message = new StringBuilder();
+				message.append(MSG.getMessage("cabecalho"));
+				message.append("\n");
+				for (Order ord : orders) {
+					message.append(MSG.getMessage("corpo")
 							.replace("{id}", Integer.toString(ord.getId()))
 							.replace("{data}", DATE_FORMAT.format(new Date(ord.getCreated().getTime())))
 							.replace("{preco}", String.format("%.2f", ord.getPrice()).replace('.', ','))
 							.replace("{produto}", ord.getProduct())
-							.replace("{status}", ord.isValidated() ? "\u00a7aAPROVADO" : "\u00a7ePENDENTE") + "\n";
+							.replace("{status}", ord.isValidated() ? "\u00a7aAPROVADO" : "\u00a7ePENDENTE"));
+					message.append("\n");
+				}
 				
-				msg += "\n";
-				sender.sendMessage(msg);
+				message.append("\n");
+				sender.sendMessage(message.toString());
 			}
 		}).start();
 	}

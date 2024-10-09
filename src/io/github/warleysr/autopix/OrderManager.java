@@ -219,5 +219,24 @@ public class OrderManager {
 		st.setString(1, id);
 		st.executeUpdate();
 	}
+	
+	public static List<DonorInfo> getTopDonors(){
+		ArrayList<DonorInfo> topDonors = new ArrayList<>();
+		
+		try {
+			PreparedStatement st = conn.prepareStatement(
+					"SELECT DISTINCT player AS donor, "
+					+ "(SELECT SUM(price) FROM autopix_orders WHERE player = donor AND pix != 'NULL') "
+					+ "AS total FROM autopix_orders WHERE pix != 'NULL' ORDER BY total DESC LIMIT 5;");
+			ResultSet rs = st.executeQuery();
+			while (rs.next()) {
+				topDonors.add(new DonorInfo(rs.getString("donor"), rs.getFloat("total")));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+		return topDonors;
+	}
 
 }
