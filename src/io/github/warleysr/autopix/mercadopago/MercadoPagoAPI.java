@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -36,7 +37,7 @@ public class MercadoPagoAPI {
 				+ "	\"notification_url\": \"" 
 				+ ap.getConfig().getString("automatico.notificacoes") + "\"\r\n"
 				+ "}";
-		
+
 		try {
 			URL url = new URL(API_URL);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -46,6 +47,7 @@ public class MercadoPagoAPI {
 	        connection.setRequestProperty("Content-Type", "application/json");
 	        connection.setRequestProperty("Accept", "application/json");
 	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+	        connection.setRequestProperty("X-Idempotency-Key", UUID.randomUUID().toString());
 	        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
                 outputStream.writeBytes(jsonBody);
                 outputStream.flush();
