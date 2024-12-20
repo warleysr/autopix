@@ -123,6 +123,11 @@ public class InventoryListener implements Listener {
 										);
 							
 						}
+						if (payload == null) {
+							MSG.sendMessage(p, "erro");
+							return;
+						}
+						
 						final BufferedImage qr = (automaticMode || generateMap) ? ImageCreator.generateQR(payload) : null;
 						
 						new BukkitRunnable() {
