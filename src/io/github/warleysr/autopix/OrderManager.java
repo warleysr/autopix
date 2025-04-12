@@ -15,6 +15,7 @@ import java.util.List;
 import javax.imageio.ImageIO;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
@@ -40,7 +41,7 @@ public class OrderManager {
 			int port = cfg.getInt("database.port");
 			autoIncrement = "AUTO_INCREMENT";
 			
-			String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?autoReconnect=true&characterEncoding=utf8";
+			String url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?autoReconnect=true&characterEncoding=utf8&useSSL=false";
 			conn = DriverManager.getConnection(url, user, pass);
 		}
 		else if (type.equalsIgnoreCase("sqlite")) {
@@ -186,7 +187,7 @@ public class OrderManager {
 							Player p = Bukkit.getPlayerExact(player);
 							
 							try {
-								String mapMaterial = AutoPix.getRunningVersion() >= 1013 ? "FILLED_MAP" : "MAP";
+								String mapMaterial = Material.getMaterial("FILLED_MAP")!= null ? "FILLED_MAP" : "MAP";
 								if (p.getItemInHand().getType().name() == mapMaterial) {
 									BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
 									ImageCreator.generateMap(gif, p, null);

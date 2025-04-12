@@ -97,7 +97,6 @@ public class InventoryListener implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					
 					Order ord = OrderManager.createOrder(p, op.getProduct(), price);
 					if (ord == null) {
 						MSG.sendMessage(p, "erro");
@@ -139,9 +138,10 @@ public class InventoryListener implements Listener {
 								if (automaticMode || generateMap)
 									ImageCreator.generateMap(qr, p, op);
 								
-								if (AutoPix.getRunningVersion() >= 1009)
+								try {
+									Player.class.getMethod("sendTitle", String.class, String.class, int.class, int.class, int.class);
 									p.sendTitle(MSG.getMessage("titulo-qr"), MSG.getMessage("subtitulo-qr"), 10, 70, 20);
-								else {
+								} catch (NoSuchMethodException e) {
 									MSG.sendMessage(p, "titulo-qr");
 									MSG.sendMessage(p, "subtitulo-qr");
 								}

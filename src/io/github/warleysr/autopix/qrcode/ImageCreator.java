@@ -37,16 +37,17 @@ public class ImageCreator {
 
     @SuppressWarnings("deprecation")
 	public static void generateMap(final BufferedImage image, Player p, OrderProduct op) {	
-    	float version = AutoPix.getRunningVersion();
     	
-    	String mapMaterial = version >= 1013 ? "FILLED_MAP" : "MAP";
+    	String mapMaterial = Material.getMaterial("FILLED_MAP") != null ? "FILLED_MAP" : "MAP";
     	
         ItemStack itemStack = new ItemStack(Material.getMaterial(mapMaterial));
         MapMeta mapMeta = (MapMeta) itemStack.getItemMeta();
         MapView mapView = Bukkit.createMap(p.getWorld());
         mapView.setScale(MapView.Scale.CLOSEST);
-        if (version >= 1013)
+        try {
+        	MapView.class.getMethod("setUnlimitedTracking", boolean.class);
         	mapView.setUnlimitedTracking(true);
+        } catch (NoSuchMethodException e) {}
         
         mapView.getRenderers().clear();
 
@@ -57,10 +58,12 @@ public class ImageCreator {
             }
         });
         
-        if (version >= 1013)
+        try {
+        	MapMeta.class.getMethod("setMapView", MapView.class);
         	mapMeta.setMapView(mapView);
-        else
+        } catch (NoSuchMethodException e) {
         	itemStack.setDurability(getMapID(mapView));
+        }
         
         InventoryManager.updateMapMeta(AutoPix.getInstance(), mapMeta, p, op);
         

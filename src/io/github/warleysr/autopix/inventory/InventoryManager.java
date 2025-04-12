@@ -109,13 +109,16 @@ public class InventoryManager {
 	
 	@SuppressWarnings("deprecation")
 	public static void openInfo(Player p) {
-		if (AutoPix.getRunningVersion() >= 1009)
+		try {
+			Player.class.getMethod("openBook", ItemStack.class);
 			p.openBook(INFO);
-		else if (p.getItemInHand().getType() == Material.AIR)
-			p.getInventory().setItemInHand(INFO);
-		else
-			MSG.sendMessage(p, "mao-vazia");
-		
+		} catch (NoSuchMethodException e) {
+			if (p.getItemInHand().getType() == Material.AIR)
+				p.getInventory().setItemInHand(INFO);
+			else
+				MSG.sendMessage(p, "mao-vazia");
+		}
+			
 	}
 	
 	public static String getMenuByTitle(String title) {
@@ -174,9 +177,11 @@ public class InventoryManager {
 		}
 		
 		item.setDurability((short) fc.getInt(path + ".data", 0));
-		
-		if (AutoPix.getRunningVersion() >= 1008)
+			
+		try {
 			meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+		} catch (IllegalArgumentException e) {}
+		
 		item.setItemMeta(meta);
 		
 		return item;
