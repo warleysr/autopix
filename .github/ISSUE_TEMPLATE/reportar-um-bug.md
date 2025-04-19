@@ -15,6 +15,8 @@ Passo a passo pro Bug acontecer:
 1. Digite o comando '...'
 2. Clique em '....'
 
+**Versão do Spigot:** 
+
 **Screenshots**
 Se necessário adicione capturas de tela para explicar o problema.
 
