@@ -97,12 +97,6 @@ public class InventoryListener implements Listener {
 			new BukkitRunnable() {
 				@Override
 				public void run() {
-					Order ord = OrderManager.createOrder(p, op.getProduct(), price);
-					if (ord == null) {
-						MSG.sendMessage(p, "erro");
-						return;
-					}
-					
 					try {
 						String payload = null;
 						boolean automaticMode = AutoPix.getInstance().getConfig().getBoolean("automatico.ativado");
