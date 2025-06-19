@@ -161,8 +161,12 @@ public class InventoryListener implements Listener {
 	public void onDrop(PlayerDropItemEvent e) {
 		ItemStack item = e.getItemDrop().getItemStack();
 		if (item.hasItemMeta() && item.getItemMeta().hasDisplayName() 
-				&& item.getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle()))
-			e.setCancelled(true);
+				&& item.getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle())) {
+			if (item.getItemMeta().hasLore())
+				e.setCancelled(true);
+			else
+				e.getItemDrop().remove();
+		}
 	}
 	
 	@EventHandler
