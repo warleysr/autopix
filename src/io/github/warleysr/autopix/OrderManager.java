@@ -21,6 +21,11 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import io.github.warleysr.autopix.domain.DonorInfo;
+import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.domain.OrderProduct;
+import io.github.warleysr.autopix.domain.PaymentInfo;
+import io.github.warleysr.autopix.domain.PixData;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
 import io.github.warleysr.autopix.qrcode.ImageCreator;
@@ -59,8 +64,9 @@ public class OrderManager {
 				+ "product VARCHAR(16) NOT NULL, price DECIMAL(10, 2) NOT NULL, "
 				+ "created TIMESTAMP NOT NULL, pix VARCHAR(32) UNIQUE NULL);").executeUpdate();
 		
-		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_pendings " 
-				+ "(id VARCHAR(32) PRIMARY KEY, player VARCHAR(16) NOT NULL);").executeUpdate();
+		conn.prepareStatement("CREATE TABLE IF NOT EXISTS autopix_pix_data " 
+				+ "(payment_id VARCHAR(128) PRIMARY KEY, order_id INTEGER NOT NULL UNIQUE, " 
+				+ "status VARCHAR(16), qr_code VARCHAR(512) NOT NULL UNIQUE);").executeUpdate();
 		
 		return true;
 	}
@@ -77,14 +83,33 @@ public class OrderManager {
 			
 			ps.executeUpdate();
 			
-			Order ord = new Order(p.getName(), product, price, 0L);
 			
-			return ord;
+			return getLastOrder(p.getName());
 			
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	
+	public static boolean savePixData(PixData pixData) {
+		try {
+			
+			PreparedStatement ps = conn.prepareStatement("INSERT INTO autopix_pix_data "
+					+ "(payment_id, order_id, status, qr_code) VALUES (?, ?, ?, ?);");
+			
+			ps.setString(1, pixData.getPaymentId());
+			ps.setInt(2, pixData.getOrderId());
+			ps.setString(3, pixData.getStatus());
+			ps.setString(4, pixData.getQrCode());
+			ps.executeUpdate();
+			
+			return true;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 	
 	public static List<Order> getOrders(String player) {
@@ -102,7 +127,7 @@ public class OrderManager {
 			
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
-				int id = rs.getInt(1);
+				int id = rs.getInt("id");
 				String player_real = rs.getString("player");
 				String product = rs.getString("product");
 				float price = rs.getFloat("price");
@@ -129,6 +154,57 @@ public class OrderManager {
 		return orders.isEmpty() ? null : orders.get(0);
 	}
 	
+	public static Order getOrderById(int orderId) {
+		try {
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM autopix_orders WHERE id = ?;");
+			ps.setInt(1, orderId);
+			
+			ResultSet rs = ps.executeQuery();
+			if (!(rs.next())) return null;
+			
+			int id = rs.getInt("id");
+			String player_real = rs.getString("player");
+			String product = rs.getString("product");
+			float price = rs.getFloat("price");
+			Timestamp created = rs.getTimestamp("created");
+			String transaction = rs.getString("pix");
+			
+			Order order = new Order(player_real, product, price, created.getTime());
+			order.setId(id);
+			order.setTransaction(transaction);
+			
+			return order;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	public static List<PixData> getAllPendingPixData() {
+		List<PixData> data = new ArrayList<>();
+		try {
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM autopix_pix_data WHERE status = 'pending';");
+			
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				String paymentId = rs.getString("payment_id");
+				int orderId = rs.getInt("order_id");
+				String status = rs.getString("status");
+				String qrCode = rs.getString("qr_code");
+				
+				PixData pd = new PixData(paymentId, qrCode);
+				pd.setOrderId(orderId);
+				pd.setStatus(status);
+				
+				data.add(pd);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return data;
+	}
+	
 	public static boolean isTransactionValidated(String transactionId) {
 		try {
 			PreparedStatement ps = conn.prepareStatement("SELECT id FROM autopix_orders WHERE pix = ?;");
@@ -153,72 +229,71 @@ public class OrderManager {
 		}
 	}
 	
-	protected static void validatePendings(AutoPix ap) {
+	public static boolean setPixDataStatus(PixData pixData, String status) {
 		try {
-			PreparedStatement st = conn.prepareStatement("SELECT * FROM autopix_pendings;");
-			ResultSet rs = st.executeQuery();
-			
-			while (rs.next()) {
-				String player = rs.getString("player");
-				if (Bukkit.getPlayerExact(player) == null) continue;
-				
-				String id = rs.getString("id");
-				
-				Object[] data = MercadoPagoAPI.getPayment(ap, id);
-				if (data == null) continue;
-				
-				String pixId = (String) data[0];
-				double paid = (double) data[1];
-				
-				for (Order order : getOrders(player)) {
-					OrderProduct op = InventoryManager.getProductByOrder(order);
-					if (op == null) continue;
-					if (order.isValidated()) continue;
-					if (Math.abs(order.getPrice() - paid) > 0.001) continue;
-					
-					if (!(OrderManager.setTransaction(order, pixId))) continue;
-					
-					deletePending(id);
-					
-					new BukkitRunnable() {
-						@SuppressWarnings("deprecation")
-						@Override
-						public void run() {
-							Player p = Bukkit.getPlayerExact(player);
-							
-							try {
-								String mapMaterial = Material.getMaterial("FILLED_MAP")!= null ? "FILLED_MAP" : "MAP";
-								if (p.getItemInHand().getType().name() == mapMaterial) {
-									BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
-									ImageCreator.generateMap(gif, p, null);
-								}
-							} catch (Exception e) {}
-							
-							if (ap.getConfig().getBoolean("som.ativar")) {
-								try {
-									Sound sound = Sound.valueOf(
-											ap.getConfig().getString("som.efeito").toUpperCase());
-									p.playSound(p.getLocation(), sound, 1, 1);
-								} catch (Exception e) {}
-							}
-							
-							for (String cmd : op.getCommands())
-								Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
-										cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
-						}
-					}.runTask(ap);
-					break;
-				}
-			}
+			PreparedStatement ps = conn.prepareStatement("UPDATE autopix_pix_data SET status = ? WHERE payment_id = ?;");
+			ps.setString(1, status);
+			ps.setString(2, pixData.getPaymentId());
+			ps.executeUpdate();
+			pixData.setStatus(status);
+			return true;
 		} catch (SQLException e) {
 			e.printStackTrace();
+			return false;
 		}
 	}
 	
-	private static void deletePending(String id) throws SQLException {
-		PreparedStatement st = conn.prepareStatement("DELETE FROM autopix_pendings WHERE id = ?;");
-		st.setString(1, id);
-		st.executeUpdate();
+	
+	protected static void validatePendings(AutoPix ap) {
+		for (PixData pd : getAllPendingPixData()) {
+			
+			Order order = getOrderById(pd.getOrderId());
+			
+			if (order == null) continue;
+			if (order.isValidated()) continue;
+			
+			Player p = Bukkit.getPlayerExact(order.getPlayer());
+			if (p == null) continue;
+			
+			OrderProduct op = InventoryManager.getProductByOrder(order);
+			if (op == null) continue;
+			
+			PaymentInfo info = MercadoPagoAPI.getPayment(ap, pd.getPaymentId());
+			if (info == null) continue;
+			
+			if (!setPixDataStatus(pd, info.getStatus())) continue;
+			
+			if (!info.getStatus().equals("approved")) continue;
+			if (Math.abs(order.getPrice() - info.getPaidAmount()) > 0.001) continue;
+			
+			if (!setTransaction(order, info.getTransactionId())) continue;
+
+			new BukkitRunnable() {
+				@SuppressWarnings("deprecation")
+				@Override
+				public void run() {	
+					try {
+						String mapMaterial = Material.getMaterial("FILLED_MAP")!= null ? "FILLED_MAP" : "MAP";
+						if (p.getItemInHand().getType().name() == mapMaterial) {
+							BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
+							ImageCreator.generateMap(gif, p, null);
+						}
+					} catch (Exception e) {}
+					
+					if (ap.getConfig().getBoolean("som.ativar")) {
+						try {
+							Sound sound = Sound.valueOf(
+									ap.getConfig().getString("som.efeito").toUpperCase());
+							p.playSound(p.getLocation(), sound, 1, 1);
+						} catch (Exception e) {}
+					}
+					
+					for (String cmd : op.getCommands())
+						Bukkit.dispatchCommand(Bukkit.getConsoleSender(), 
+								cmd.replace("{player}", p.getName()).replace('&', '\u00a7'));
+				}
+			}.runTask(ap);
+		}
 	}
 	
 	public static List<DonorInfo> getTopDonors(){

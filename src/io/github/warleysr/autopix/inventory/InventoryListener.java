@@ -23,10 +23,11 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
-import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
-import io.github.warleysr.autopix.OrderProduct;
 import io.github.warleysr.autopix.TimeManager;
+import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.domain.OrderProduct;
+import io.github.warleysr.autopix.domain.PixData;
 import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
 import io.github.warleysr.autopix.qrcode.ImageCreator;
 import io.github.warleysr.autopix.qrcode.PixGenerator;
@@ -93,12 +94,13 @@ public class InventoryListener implements Listener {
 			if (op == null) return;
 			
 			final float price = DISCOUNT_PRICES.getOrDefault(p.getName(), op.getPrice());
+			MSG.sendMessage(p, "criando-mapa");
 			
 			new BukkitRunnable() {
 				@Override
 				public void run() {
 					try {
-						String payload = null;
+						Object payload = null;
 						boolean automaticMode = AutoPix.getInstance().getConfig().getBoolean("automatico.ativado");
 						boolean generateMap = AutoPix.getInstance().getConfig().getBoolean("pix.mapa");
 						
@@ -121,7 +123,24 @@ public class InventoryListener implements Listener {
 							return;
 						}
 						
-						final BufferedImage qr = (automaticMode || generateMap) ? ImageCreator.generateQR(payload) : null;
+						Order ord = OrderManager.createOrder(p, op.getProduct(), price);
+						if (ord == null) {
+							MSG.sendMessage(p, "erro");
+							return;
+						}
+						if (payload instanceof PixData) {
+							PixData pd = (PixData) payload;
+							pd.setOrderId(ord.getId());
+							boolean success = OrderManager.savePixData(pd);
+							if (!(success)) {
+								MSG.sendMessage(p, "erro");
+								return;
+							}
+							payload = pd.getQrCode();
+						}
+						
+						final BufferedImage qr = (automaticMode || generateMap) 
+								? ImageCreator.generateQR((String) payload) : null;
 						
 						new BukkitRunnable() {
 							@Override

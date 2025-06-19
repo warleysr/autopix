@@ -39,6 +39,7 @@ pix-nao-validado: '&b[AutoPix] &cNao foi possivel validar o PIX. Verifique o cod
 mao-vazia: '&b[AutoPix] &cVoce precisa estar com a mao vazia para receber o item.'
 validando: '&b[AutoPix] &aValidando seu PIX. Aguarde um pouco.'
 reload-executado: '&b[AutoPix] &aReload executado com sucesso.'
+criando-mapa: '&b[AutoPix] &aCriando mapa de pagamento. Aguarde...'
 
 # Desconto
 inserir-cupom:

@@ -15,15 +15,18 @@ import org.json.simple.parser.JSONParser;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
-import io.github.warleysr.autopix.Order;
-import io.github.warleysr.autopix.OrderManager;
-import io.github.warleysr.autopix.OrderProduct;
+import io.github.warleysr.autopix.domain.OrderProduct;
+import io.github.warleysr.autopix.domain.PaymentInfo;
+import io.github.warleysr.autopix.domain.PixData;
 
 public class MercadoPagoAPI {
 	
 	private static final String API_URL = "https://api.mercadopago.com/v1/payments";
 	
-	public static String createPixPayment(AutoPix ap, Player p, OrderProduct product, float price) {	
+	public static PixData createPixPayment(
+			AutoPix ap, Player p, OrderProduct product, float price
+			) throws Exception {	
+		
 		String jsonBody = "{\r\n"
 				+ "  \"description\": \"" + product.getProduct() + "\",\r\n"
 				+ "  \"payer\": {\r\n"
@@ -38,61 +41,51 @@ public class MercadoPagoAPI {
 				+ ap.getConfig().getString("automatico.notificacoes") + "\"\r\n"
 				+ "}";
 
-		try {
-			URL url = new URL(API_URL);
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+		URL url = new URL(API_URL);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
 
-	        connection.setRequestMethod("POST");
-	        connection.setDoOutput(true);
-	        connection.setRequestProperty("Content-Type", "application/json");
-	        connection.setRequestProperty("Accept", "application/json");
-	        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
-	        connection.setRequestProperty("X-Idempotency-Key", UUID.randomUUID().toString());
-	        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
-                outputStream.writeBytes(jsonBody);
-                outputStream.flush();
-            }
-	        
-			int statusCode = connection.getResponseCode();
-			
-			BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	        String line;
-	        StringBuilder response = new StringBuilder();
+        connection.setRequestMethod("POST");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+        connection.setRequestProperty("X-Idempotency-Key", UUID.randomUUID().toString());
+        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
+            outputStream.writeBytes(jsonBody);
+            outputStream.flush();
+        }
+        
+		int statusCode = connection.getResponseCode();
+		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line;
+        StringBuilder response = new StringBuilder();
 
-	        while ((line = reader.readLine()) != null) {
-	            response.append(line);
-	        }
-	        reader.close();
-			
-			if (statusCode != 201) {
-				Bukkit.getConsoleSender().sendMessage("\u00a7b[AutoPix] \u00a7cErro ao validar PIX:\n" 
-						+ statusCode + " - " + response.toString()
-						+ "\nVerifique se configurou corretamente o token do MP.");
-				MSG.sendMessage(p, "erro-validar");
-				return null;
-			}
-			
-			Order order = OrderManager.createOrder(p, product.getProduct(), product.getPrice());
-			if (order == null) {
-				MSG.sendMessage(p, "erro-validar");
-				return null;
-			}
-			
-			JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
-			JSONObject poi = (JSONObject) json.get("point_of_interaction");
-			String qr = (String) ((JSONObject) poi.get("transaction_data"))
-					        .get("qr_code");
-			
-			return qr;
-			
-		} catch (Exception e) {
-			e.printStackTrace();
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+		
+		if (statusCode != 201) {
+			Bukkit.getConsoleSender().sendMessage("\u00a7b[AutoPix] \u00a7cErro ao validar PIX:\n" 
+					+ statusCode + " - " + response.toString()
+					+ "\nVerifique se configurou corretamente o token do MP.");
 			MSG.sendMessage(p, "erro-validar");
+			return null;
 		}
-		return null;
+		
+		JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
+		
+		String paymentId = String.valueOf(json.get("id"));
+		
+		JSONObject poi = (JSONObject) json.get("point_of_interaction");
+		String qr = (String) ((JSONObject) poi.get("transaction_data"))
+				        .get("qr_code");
+		
+		return new PixData(paymentId, qr);
 	}
 	
-	public static Object[] getPayment(AutoPix ap, String id) {
+	public static PaymentInfo getPayment(AutoPix ap, String id) {
 		String responseMP = "";
 		try {
 			URL url = new URL(API_URL + "/" + id);
@@ -117,17 +110,19 @@ public class MercadoPagoAPI {
 	        
 	        responseMP = response.toString();
 	        
-	        
 			JSONObject json = (JSONObject) new JSONParser().parse(response.toString());
 			String status = (String) json.get("status");
-			if (!(status.equals("approved"))) return null;
 			
-			JSONObject details = (JSONObject) json.get("transaction_details");
+			String pixId = null;
+			double paid = 0.0;
 			
-			String pixId = ((String) details.get("transaction_id")).substring(3);
-			double paid = (double) details.get("total_paid_amount");
+			if (status.equals("approved")) {
+				JSONObject details = (JSONObject) json.get("transaction_details");
+				pixId = ((String) details.get("transaction_id")).substring(3);
+				paid = (double) details.get("total_paid_amount");
+			}
 			
-			return new Object[] {pixId, paid};
+			return new PaymentInfo(pixId, status, paid);
 			
 		} catch (Exception e) {
 			e.printStackTrace();
