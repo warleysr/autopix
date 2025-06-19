@@ -1,4 +1,4 @@
-package io.github.warleysr.autopix;
+package io.github.warleysr.autopix.domain;
 
 public class DonorInfo {
 	
