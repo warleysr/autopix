@@ -19,8 +19,8 @@ import org.bukkit.inventory.meta.MapMeta;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
-import io.github.warleysr.autopix.Order;
-import io.github.warleysr.autopix.OrderProduct;
+import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.domain.OrderProduct;
 
 public class InventoryManager {
 	

@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import io.github.warleysr.autopix.commands.APMenuCommand;
 import io.github.warleysr.autopix.commands.AutoPixCommand;
+import io.github.warleysr.autopix.domain.Order;
 import io.github.warleysr.autopix.inventory.InventoryListener;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 

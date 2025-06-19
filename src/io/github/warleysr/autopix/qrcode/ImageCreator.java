@@ -19,7 +19,7 @@ import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 
 import io.github.warleysr.autopix.AutoPix;
-import io.github.warleysr.autopix.OrderProduct;
+import io.github.warleysr.autopix.domain.OrderProduct;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 
 public class ImageCreator {

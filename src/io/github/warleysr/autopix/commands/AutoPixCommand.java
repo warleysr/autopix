@@ -10,11 +10,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import io.github.warleysr.autopix.AutoPix;
-import io.github.warleysr.autopix.DonorInfo;
 import io.github.warleysr.autopix.MSG;
-import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
 import io.github.warleysr.autopix.TimeManager;
+import io.github.warleysr.autopix.domain.DonorInfo;
+import io.github.warleysr.autopix.domain.Order;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 import io.github.warleysr.autopix.mercadopago.MPValidator;
 

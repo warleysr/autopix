@@ -15,9 +15,9 @@ import org.json.simple.parser.JSONParser;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
-import io.github.warleysr.autopix.Order;
 import io.github.warleysr.autopix.OrderManager;
-import io.github.warleysr.autopix.OrderProduct;
+import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.domain.OrderProduct;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 
 
