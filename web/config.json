@@ -1,7 +1,0 @@
-{
-    "host": "localhost",
-    "user": "dbadmin",
-    "password": "admindb",
-    "db": "tests",
-    "access_token": "SEU_TOKEN_MERCADO_PAGO"
-}
