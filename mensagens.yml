@@ -26,7 +26,7 @@ cabecalho: '&7========== &bSuas ordens por PIX &7==========='
 corpo: '&7[&c{id}&7] {data} - &f{produto} (&cR${preco}&f) &7- {status}'
 
 # Top
-sem-doadores: '&b[AutoPix] &c7Ainda nao tivemos nenhum doador. Seja o primeiro!'
+sem-doadores: '&b[AutoPix] &cAinda nao tivemos nenhum doador. Seja o primeiro!'
 cabecalho-top: '&7========== &bTop Doadores por PIX &7==========='
 corpo-top: '&a{doador} &f- Total: &cR${total}'
 

@@ -146,7 +146,7 @@ public class InventoryListener implements Listener {
 							@Override
 							public void run() {
 								for (String preCmd : op.getPreCommands())
-									Bukkit.dispatchCommand(p, preCmd.replace("{player}", p.getName()));
+									Bukkit.dispatchCommand(Bukkit.getConsoleSender(), preCmd.replace("{player}", p.getName()));
 								
 								if (automaticMode || generateMap)
 									ImageCreator.generateMap(qr, p, op);

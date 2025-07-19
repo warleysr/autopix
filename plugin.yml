@@ -1,8 +1,9 @@
 name: AutoPix
-version: 1.0.22
+version: 1.0.23
 main: io.github.warleysr.autopix.AutoPix
 author: warleysr
 api-version: 1.13
+softdepend: [PlaceholderAPI]
 commands:
   autopix:
     description: Valida uma transacao realizada por PIX
