@@ -12,6 +12,7 @@ import org.bukkit.scheduler.BukkitTask;
 import io.github.warleysr.autopix.commands.APMenuCommand;
 import io.github.warleysr.autopix.commands.AutoPixCommand;
 import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.expansion.AutoPixExpansion;
 import io.github.warleysr.autopix.inventory.InventoryListener;
 import io.github.warleysr.autopix.inventory.InventoryManager;
 
@@ -19,8 +20,7 @@ public class AutoPix extends JavaPlugin {
 	
 	private static String PIX_KEY;
 	private static String PIX_NAME;
-	private static BukkitTask VALIDATE_TASK;
-	private static BukkitTask MAPS_TASK;
+	private static BukkitTask VALIDATE_TASK, MAPS_TASK, HOLOGRAM_TASK;
 	
 	private static AutoPix instance;
 	
@@ -35,6 +35,10 @@ public class AutoPix extends JavaPlugin {
 		getCommand("autopixmenu").setExecutor(new APMenuCommand());
 		
 		Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
+		
+		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+			new AutoPixExpansion().register();
+		}
 	}
 	
 	public static AutoPix getInstance() {
@@ -109,6 +113,19 @@ public class AutoPix extends JavaPlugin {
 				}
 			}
 		}.runTaskTimerAsynchronously(plugin, remInterval * 20L, remInterval * 20L);
+		
+		// Start task to update top donors hologram data
+		if (HOLOGRAM_TASK != null)
+			HOLOGRAM_TASK.cancel();
+		
+		int holoInterval = plugin.getConfig().getInt("tempos.holograma", 30);
+		
+		HOLOGRAM_TASK = new BukkitRunnable() {		
+			@Override
+			public void run() {
+				AutoPixExpansion.updateTopDonorsCache(OrderManager.getTopDonors());
+			}
+		}.runTaskTimerAsynchronously(plugin, 0L, holoInterval * 20L);
 	}
 
 }

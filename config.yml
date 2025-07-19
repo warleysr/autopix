@@ -32,6 +32,7 @@ tempos:
   validar: 60
   lista: 30
   criar-pedido: 300
+  holograma: 30
 
 # Mapa de pagamento
 mapa:
