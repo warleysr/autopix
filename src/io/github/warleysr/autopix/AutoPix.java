@@ -29,7 +29,7 @@ public class AutoPix extends JavaPlugin {
 		instance = this;
 		
 		saveDefaultConfig();
-		reloadPlugin();
+		if (!reloadPlugin()) return;
 		
 		getCommand("autopix").setExecutor(new AutoPixCommand());
 		getCommand("autopixmenu").setExecutor(new APMenuCommand());
@@ -53,7 +53,7 @@ public class AutoPix extends JavaPlugin {
 		return PIX_NAME;
 	}
 	
-	public static void reloadPlugin() {
+	public static boolean reloadPlugin() {
 		AutoPix plugin = getInstance();
 		plugin.reloadConfig();
 		
@@ -65,14 +65,14 @@ public class AutoPix extends JavaPlugin {
 		try {
 			if (!(OrderManager.startOrderManager(plugin))) {
 				plugin.setEnabled(false);
-				return;
+				return false;
 			}
 			
 		} catch (SQLException e) {
 			Bukkit.getConsoleSender().sendMessage(MSG.getMessage("erro-sql")
 					.replace("{mensagem}", e.getMessage()));
 			plugin.setEnabled(false);
-			return;
+			return false;
 		}
 		
 		InventoryManager.createMenuInventory(plugin);
@@ -126,6 +126,8 @@ public class AutoPix extends JavaPlugin {
 				AutoPixExpansion.updateTopDonorsCache(OrderManager.getTopDonors());
 			}
 		}.runTaskTimerAsynchronously(plugin, 0L, holoInterval * 20L);
+		
+		return true;
 	}
 
 }
