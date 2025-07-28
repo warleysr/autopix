@@ -1,10 +1,14 @@
 package io.github.warleysr.autopix.inventory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -16,6 +20,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
@@ -49,6 +58,12 @@ public class InventoryManager {
 				int slot = ap.getConfig().getInt("menu." + menu + ".produtos." + product + ".icone.slot") - 1;
 				
 				ItemStack icon = loadItem(ap.getConfig(), "menu." + menu + ".produtos." + product + ".icone", price);
+				
+				if (icon.getType() == Material.PLAYER_HEAD) {
+					String texture = ap.getConfig().getString("menu." + menu + ".produtos." + product + ".icone.textura", null);
+					if (texture != null)
+						applyCustomHead(icon, texture);
+				}
 				
 				inv.setItem(slot, icon);
 				
@@ -211,5 +226,38 @@ public class InventoryManager {
 		
 		meta.setLore(lore);
 	}
+	
+	 private static void applyCustomHead(ItemStack head, String base64Texture) {
+		String textureUrl = getTextureUrlFromBase64(base64Texture);
+		if (textureUrl == null) return;
+ 
+        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+        PlayerTextures textures = profile.getTextures();
+
+        try {
+            textures.setSkin(new URL(textureUrl));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        profile.setTextures(textures);
+        meta.setOwnerProfile(profile);
+        head.setItemMeta(meta);
+    }
+	 
+	 private static String getTextureUrlFromBase64(String base64) {
+	        try {
+	            String decoded = new String(Base64.getDecoder().decode(base64));
+	            JSONParser parser = new JSONParser();
+	            JSONObject json = (JSONObject) parser.parse(decoded);
+	            JSONObject textures = (JSONObject) json.get("textures");
+	            JSONObject skin = (JSONObject) textures.get("SKIN");
+	            return (String) skin.get("url");
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	            return null;
+	        }
+	    }
 
 }
