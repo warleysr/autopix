@@ -53,6 +53,7 @@ public class OrderManager {
 			autoIncrement = "AUTOINCREMENT";
 			File flatFile = new File(ap.getDataFolder(), "autopix.db");
 			conn = DriverManager.getConnection("jdbc:sqlite:" + flatFile.getAbsolutePath());
+			conn.createStatement().execute("PRAGMA busy_timeout = 5000;");
 		}
 		else {
 			MSG.sendMessage(Bukkit.getConsoleSender(), "db-invalido");
@@ -298,12 +299,16 @@ public class OrderManager {
 	
 	public static List<DonorInfo> getTopDonors(){
 		ArrayList<DonorInfo> topDonors = new ArrayList<>();
+		int topLimit = AutoPix.getInstance().getConfig().getInt("top-doadores", 5);
 		
 		try {
 			PreparedStatement st = conn.prepareStatement(
-					"SELECT DISTINCT player AS donor, "
-					+ "(SELECT SUM(price) FROM autopix_orders WHERE player = donor AND pix != 'NULL') "
-					+ "AS total FROM autopix_orders WHERE pix != 'NULL' ORDER BY total DESC LIMIT 5;");
+					"SELECT player AS donor, SUM(price) AS total "
+					+ "FROM autopix_orders "
+					+ "WHERE pix IS NOT NULL "
+					+ "GROUP BY player "
+					+ "ORDER BY total DESC "
+					+ "LIMIT " + topLimit + ";");
 			ResultSet rs = st.executeQuery();
 			while (rs.next()) {
 				topDonors.add(new DonorInfo(rs.getString("donor"), rs.getFloat("total")));
