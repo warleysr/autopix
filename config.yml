@@ -108,6 +108,9 @@ som:
   ativar: true
   efeito: BLOCK_NOTE_BLOCK_BASS
 
+# Quantidade de top doadores que serão mostrados
+top-doadores: 5
+
 # Livro de ajuda com instrucoes
 info:
   titulo: '&aInfo PIX'
