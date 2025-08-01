@@ -12,9 +12,11 @@ import org.bukkit.scheduler.BukkitTask;
 import io.github.warleysr.autopix.commands.APMenuCommand;
 import io.github.warleysr.autopix.commands.AutoPixCommand;
 import io.github.warleysr.autopix.domain.Order;
+import io.github.warleysr.autopix.domain.PixData;
 import io.github.warleysr.autopix.expansion.AutoPixExpansion;
 import io.github.warleysr.autopix.inventory.InventoryListener;
 import io.github.warleysr.autopix.inventory.InventoryManager;
+import io.github.warleysr.autopix.mercadopago.MercadoPagoAPI;
 
 public class AutoPix extends JavaPlugin {
 	
@@ -108,8 +110,19 @@ public class AutoPix extends JavaPlugin {
 					long diff = System.currentTimeMillis() - order.getCreated().getTime();
 					long minutes = TimeUnit.MILLISECONDS.toMinutes(diff);
 					
-					if (minutes >= plugin.getConfig().getInt("mapa.tempo-pagar"))
-						InventoryManager.removeUnpaidMaps(p);
+					if (minutes < plugin.getConfig().getInt("mapa.tempo-pagar")) continue;
+					
+					InventoryManager.removeUnpaidMaps(p);
+					
+					PixData pd = OrderManager.getPixData(order);
+					if (pd == null) continue;
+					
+					OrderManager.setPixDataStatus(pd, "cancelled");
+					try {
+						MercadoPagoAPI.cancelPayment(plugin, pd.getPaymentId());
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
 				}
 			}
 		}.runTaskTimerAsynchronously(plugin, remInterval * 20L, remInterval * 20L);

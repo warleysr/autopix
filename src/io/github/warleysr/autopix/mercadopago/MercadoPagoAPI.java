@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -51,7 +52,7 @@ public class MercadoPagoAPI {
         connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
         connection.setRequestProperty("X-Idempotency-Key", UUID.randomUUID().toString());
         try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
-            outputStream.writeBytes(jsonBody);
+        	outputStream.write(jsonBody.getBytes(StandardCharsets.UTF_8));
             outputStream.flush();
         }
         
@@ -90,6 +91,7 @@ public class MercadoPagoAPI {
 		try {
 			URL url = new URL(API_URL + "/" + id);
 			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setConnectTimeout(ap.getConfig().getInt("automatico.intervalo") * 1000 - 100);
 
 	        connection.setRequestMethod("GET");
 	        connection.setRequestProperty("Accept", "application/json");
@@ -134,5 +136,47 @@ public class MercadoPagoAPI {
 		}
 		return null;
 	}
+	
+	public static boolean cancelPayment(AutoPix ap, String paymentId) throws Exception {	
+		
+		String jsonBody = "{\r\n"
+				+ "  \"status\": \"cancelled\"\r\n"
+				+ "}";
 
+		URL url = new URL(API_URL + "/" + paymentId);
+		HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+        connection.setRequestMethod("PUT");
+        connection.setDoOutput(true);
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Authorization", "Bearer " + ap.getConfig().getString("token-mp"));
+        try (DataOutputStream outputStream = new DataOutputStream(connection.getOutputStream())) {
+        	outputStream.write(jsonBody.getBytes(StandardCharsets.UTF_8));
+            outputStream.flush();
+        }
+        
+		int statusCode = connection.getResponseCode();
+		
+		BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String line;
+        StringBuilder response = new StringBuilder();
+
+        while ((line = reader.readLine()) != null) {
+            response.append(line);
+        }
+        reader.close();
+        
+        boolean success = statusCode == 200;
+        
+        if (!success) {
+	        Bukkit.getConsoleSender().sendMessage("\u00a7b========== \u00a7aDEBUG \u00a7b==========");
+			Bukkit.getConsoleSender().sendMessage("\u00a7aPagamento: \u00a7f" + paymentId);
+			Bukkit.getConsoleSender().sendMessage("\u00a7aRetorno MP:");
+			Bukkit.getConsoleSender().sendMessage(response.toString());
+			Bukkit.getConsoleSender().sendMessage("\u00a7b================================================");
+        }
+        
+        return success;
+	}
 }

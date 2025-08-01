@@ -36,4 +36,8 @@ public class PixData {
 		return qrCode;
 	}
 	
+	public boolean isPending() {
+		return status.equals("pending");
+	}
+	
 }
