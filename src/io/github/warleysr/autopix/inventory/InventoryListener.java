@@ -2,6 +2,7 @@ package io.github.warleysr.autopix.inventory;
 
 
 import java.awt.image.BufferedImage;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -18,8 +19,11 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import com.google.zxing.WriterException;
 
 import io.github.warleysr.autopix.AutoPix;
 import io.github.warleysr.autopix.MSG;
@@ -38,6 +42,7 @@ public class InventoryListener implements Listener {
 	private static final HashMap<String, Integer> BUYING_SLOT = new HashMap<>();
 	private static final HashMap<String, Float> DISCOUNT_PRICES = new HashMap<>();
 	private static final ArrayList<String> SET_DISCOUNT = new ArrayList<>();
+	private static final ArrayList<String> NO_RENDER_NEEDED = new ArrayList<>();
 	private static final SimpleDateFormat SDF = new SimpleDateFormat("dd/MM/yyyy");
 	
 	@SuppressWarnings("deprecation")
@@ -148,8 +153,13 @@ public class InventoryListener implements Listener {
 								for (String preCmd : op.getPreCommands())
 									Bukkit.dispatchCommand(Bukkit.getConsoleSender(), preCmd.replace("{player}", p.getName()));
 								
-								if (automaticMode || generateMap)
-									ImageCreator.generateMap(qr, p, op);
+								if (automaticMode || generateMap) {
+									ItemStack map = ImageCreator.generateMap(qr, p, op);
+									p.setItemInHand(map);
+									
+									if (!(NO_RENDER_NEEDED.contains(p.getName())))
+										NO_RENDER_NEEDED.add(p.getName());
+								}
 								
 								try {
 									Player.class.getMethod("sendTitle", String.class, String.class, int.class, int.class, int.class);
@@ -187,6 +197,52 @@ public class InventoryListener implements Listener {
 		if (e.hasItem() && e.getItem().hasItemMeta() && e.getItem().getItemMeta().hasDisplayName() 
 				&& e.getItem().getItemMeta().getDisplayName().equals(InventoryManager.getMapTitle()))
 			e.setCancelled(true);
+	}
+	
+	
+	@EventHandler
+	public void onJoin(PlayerJoinEvent e) {
+		Player p = e.getPlayer();
+		if (NO_RENDER_NEEDED.contains(p.getName())) return;
+		
+		for (int i = 0; i < 9; i++) {
+			final int slot = i;
+			
+			ItemStack item = p.getInventory().getItem(slot);
+			if (!(InventoryManager.isPaymentMap(item))) continue;
+			
+			new BukkitRunnable() {
+				@Override
+				public void run() {
+					Order order = OrderManager.getLastOrder(p.getName());
+					if (order == null) return;
+					
+					OrderProduct op = InventoryManager.getProductByOrder(order);
+					if (op == null) return;
+					
+					PixData pd = OrderManager.getPixData(order);
+					if (pd == null) return;
+					
+					new BukkitRunnable() {
+						@Override
+						public void run() {
+							try {
+								BufferedImage qrCode = ImageCreator.generateQR(pd.getQrCode());
+								ItemStack map = ImageCreator.generateMap(qrCode, p, op);
+								
+								p.getInventory().setItem(slot, map);
+								NO_RENDER_NEEDED.add(p.getName());
+								
+							} catch (UnsupportedEncodingException | WriterException e1) {
+								e1.printStackTrace();
+							}
+						}
+					}.runTask(AutoPix.getInstance());
+				}
+			}.runTaskAsynchronously(AutoPix.getInstance());
+					
+			break;
+		}
 	}
 	
 	@EventHandler

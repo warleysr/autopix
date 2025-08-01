@@ -36,7 +36,7 @@ public class ImageCreator {
     }
 
     @SuppressWarnings("deprecation")
-	public static void generateMap(final BufferedImage image, Player p, OrderProduct op) {	
+	public static ItemStack generateMap(final BufferedImage image, Player p, OrderProduct op) {	
     	
     	String mapMaterial = Material.getMaterial("FILLED_MAP") != null ? "FILLED_MAP" : "MAP";
     	
@@ -50,13 +50,12 @@ public class ImageCreator {
         } catch (NoSuchMethodException e) {}
         
         mapView.getRenderers().clear();
-
         mapView.addRenderer(new MapRenderer() {
-            @Override
+        	@Override
             public void render(MapView mapView, MapCanvas mapCanvas, Player player) {
                 mapCanvas.drawImage(0, 0, image);
             }
-        });
+		});
         
         try {
         	MapMeta.class.getMethod("setMapView", MapView.class);
@@ -69,7 +68,7 @@ public class ImageCreator {
         
         itemStack.setItemMeta(mapMeta);
 
-        p.getInventory().setItemInHand(itemStack);
+        return itemStack;
     }
     
     public static Class<?> getMapNMS(String name) {
