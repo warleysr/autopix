@@ -19,6 +19,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import io.github.warleysr.autopix.domain.DonorInfo;
@@ -301,7 +302,15 @@ public class OrderManager {
 						String mapMaterial = Material.getMaterial("FILLED_MAP")!= null ? "FILLED_MAP" : "MAP";
 						if (p.getItemInHand().getType().name() == mapMaterial) {
 							BufferedImage gif = ImageIO.read(AutoPix.getInstance().getResource("success.png"));
-							ImageCreator.generateMap(gif, p, null);
+							ItemStack successMap = ImageCreator.generateMap(gif, p, null);
+							p.setItemInHand(successMap);
+							
+							new BukkitRunnable() {
+								@Override
+								public void run() {
+									InventoryManager.removeUnpaidMaps(p);
+								}
+							}.runTaskLater(ap, 100L);
 						}
 					} catch (Exception e) {}
 					
