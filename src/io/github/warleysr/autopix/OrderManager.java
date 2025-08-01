@@ -182,6 +182,30 @@ public class OrderManager {
 		}
 	}
 	
+	public static PixData getPixData(Order order) {
+		try {
+			PreparedStatement ps = conn.prepareStatement("SELECT * FROM autopix_pix_data WHERE order_id = ?;");
+			ps.setInt(1, order.getId());
+			
+			ResultSet rs = ps.executeQuery();
+			if (rs.next()) {
+				String paymentId = rs.getString("payment_id");
+				int orderId = rs.getInt("order_id");
+				String status = rs.getString("status");
+				String qrCode = rs.getString("qr_code");
+				
+				PixData pd = new PixData(paymentId, qrCode);
+				pd.setOrderId(orderId);
+				pd.setStatus(status);
+				
+				return pd;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
 	public static List<PixData> getAllPendingPixData() {
 		List<PixData> data = new ArrayList<>();
 		try {

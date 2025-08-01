@@ -57,3 +57,12 @@ cupom-aplicado:
 - '&b[AutoPix] &apagara &fR${valor} &ano produto &f{produto}&a.'
 - ' '
 compra-cancelada: '&b[AutoPix] &cCompra cancelada.'
+
+# Cancelar
+sem-pedido-pendente: '&b[AutoPix] &cSem pedido pendente para cancelar.'
+erro-cancelar: '&b[AutoPix] &cErro ao cancelar pedido. Tente novamente.'
+cancelado: '&b[AutoPix] &aPedido cancelado com sucesso.'
+cancelar-primeiro: 
+- '&b[AutoPix] &cVoce gerou um pedido e não pagou.' 
+- '&b[AutoPix] &cPague-o ou use &f/pix cancelar &cpara'
+- '&b[AutoPix] &ccancelar antes de gerar outro.'

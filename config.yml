@@ -15,8 +15,8 @@ pix:
 # Modo de ativacao automatico
 automatico:
   ativado: true
-  intervalo: 10
-  notificacoes: 'http://meusite.com/autopix/notification.php'
+  # Em segundos para cada verificação. Valores muito baixos podem sobrecarregar o servidor.
+  intervalo: 10 
   
 # Servidor MySQL para salvamento dos dados
 database:
@@ -33,6 +33,8 @@ tempos:
   lista: 30
   criar-pedido: 300
   holograma: 30
+  cancelar: 30
+  top: 30
 
 # Mapa de pagamento
 mapa:
