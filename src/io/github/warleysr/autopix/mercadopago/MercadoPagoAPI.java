@@ -121,7 +121,8 @@ public class MercadoPagoAPI {
 			if (status.equals("approved")) {
 				JSONObject details = (JSONObject) json.get("transaction_details");
 				pixId = ((String) details.get("transaction_id")).substring(3);
-				paid = (double) details.get("total_paid_amount");
+				Number paidNumber = (Number) details.get("total_paid_amount");
+				paid = paidNumber.doubleValue();
 			}
 			
 			return new PaymentInfo(pixId, status, paid);
