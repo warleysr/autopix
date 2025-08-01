@@ -15,6 +15,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -190,6 +191,9 @@ public class InventoryListener implements Listener {
 				}
 			}.runTaskAsynchronously(AutoPix.getInstance());
 		}
+		else if (InventoryManager.isPaymentMap(e.getCurrentItem())) {
+			e.setCancelled(true);
+		}
 	}
 	
 	@EventHandler
@@ -211,6 +215,12 @@ public class InventoryListener implements Listener {
 			e.setCancelled(true);
 	}
 	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent e) {
+		for (ItemStack item : e.getDrops())
+			if (InventoryManager.isPaymentMap(item))
+				e.getDrops().remove(item);
+	}
 	
 	@EventHandler
 	public void onJoin(PlayerJoinEvent e) {
