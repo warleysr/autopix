@@ -204,12 +204,14 @@ public class InventoryManager {
 	
 	public static void removeUnpaidMaps(Player p) {
 		for (ItemStack item : p.getInventory().getContents()) {
-			if (item == null) continue;
-			if (!(item.hasItemMeta())) continue;
-			if (!(item.getItemMeta().hasDisplayName())) continue;
-			if (item.getItemMeta().getDisplayName().equals(mapTitle))
+			if (isPaymentMap(item))
 				p.getInventory().remove(item);
 		}
+	}
+	
+	public static boolean isPaymentMap(ItemStack item) {
+		return item != null && item.hasItemMeta() && item.getItemMeta().hasDisplayName() 
+				&& item.getItemMeta().getDisplayName().equals(mapTitle);
 	}
 	
 	public static void updateMapMeta(AutoPix ap, MapMeta meta, Player p, OrderProduct op) {
