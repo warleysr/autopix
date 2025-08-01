@@ -115,7 +115,7 @@ public class AutoPix extends JavaPlugin {
 					InventoryManager.removeUnpaidMaps(p);
 					
 					PixData pd = OrderManager.getPixData(order);
-					if (pd == null) continue;
+					if (pd == null || !pd.isPending()) continue;
 					
 					OrderManager.setPixDataStatus(pd, "cancelled");
 					try {
