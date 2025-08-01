@@ -99,19 +99,31 @@ public class InventoryListener implements Listener {
 			if (op == null) return;
 			
 			final float price = DISCOUNT_PRICES.getOrDefault(p.getName(), op.getPrice());
-			MSG.sendMessage(p, "criando-mapa");
 			
 			new BukkitRunnable() {
 				@Override
 				public void run() {
 					try {
 						Object payload = null;
+						// If using automatic mode, prevent from creating a new order if the last one is pending
 						boolean automaticMode = AutoPix.getInstance().getConfig().getBoolean("automatico.ativado");
 						boolean generateMap = AutoPix.getInstance().getConfig().getBoolean("pix.mapa");
 						
-						if (automaticMode)
+						if (automaticMode) {
+							Order lastOrder = OrderManager.getLastOrder(p.getName());
+							if (lastOrder != null) {
+								PixData pd = OrderManager.getPixData(lastOrder);
+								if (pd != null && pd.isPending()) {
+									MSG.sendMessage(p, "cancelar-primeiro");
+									return;
+								}
+							}
+							MSG.sendMessage(p, "criando-mapa");
 							payload = MercadoPagoAPI.createPixPayment(AutoPix.getInstance(), p, op, price);
-						else {
+						
+						} else {
+							MSG.sendMessage(p, "criando-mapa");
+							
 							// If automatic mode is not enabled, create a static QR code
 							payload = PixGenerator.generatePayload(
 									AutoPix.getPixKey(), AutoPix.getPixName(), op.getProduct(), price
