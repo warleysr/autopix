@@ -131,14 +131,16 @@ public class AutoPix extends JavaPlugin {
 		if (HOLOGRAM_TASK != null)
 			HOLOGRAM_TASK.cancel();
 		
-		int holoInterval = plugin.getConfig().getInt("tempos.holograma", 30);
-		
-		HOLOGRAM_TASK = new BukkitRunnable() {		
-			@Override
-			public void run() {
-				AutoPixExpansion.updateTopDonorsCache(OrderManager.getTopDonors());
-			}
-		}.runTaskTimerAsynchronously(plugin, 0L, holoInterval * 20L);
+		if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
+			int holoInterval = plugin.getConfig().getInt("tempos.holograma", 30);
+			
+			HOLOGRAM_TASK = new BukkitRunnable() {		
+				@Override
+				public void run() {
+					AutoPixExpansion.updateTopDonorsCache(OrderManager.getTopDonors());
+				}
+			}.runTaskTimerAsynchronously(plugin, 0L, holoInterval * 20L);
+		}
 		
 		return true;
 	}
