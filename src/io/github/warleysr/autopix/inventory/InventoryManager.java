@@ -59,12 +59,6 @@ public class InventoryManager {
 				
 				ItemStack icon = loadItem(ap.getConfig(), "menu." + menu + ".produtos." + product + ".icone", price);
 				
-				if (icon.getType() == Material.PLAYER_HEAD) {
-					String texture = ap.getConfig().getString("menu." + menu + ".produtos." + product + ".icone.textura", null);
-					if (texture != null)
-						applyCustomHead(icon, texture);
-				}
-				
 				inv.setItem(slot, icon);
 				
 				if (!(PRODUCTS.containsKey(menu)))
@@ -198,6 +192,12 @@ public class InventoryManager {
 		} catch (IllegalArgumentException e) {}
 		
 		item.setItemMeta(meta);
+		
+		if (material.name() == "PLAYER_HEAD") {
+			String texture = fc.getString(path + ".textura", null);
+			if (texture != null)
+				applyCustomHead(item, texture);
+		}
 		
 		return item;
 	}
